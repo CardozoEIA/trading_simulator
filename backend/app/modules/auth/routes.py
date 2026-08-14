@@ -1,11 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 
-from app.database import get_db
-from app.modules.users.model import User
-from app.modules.auth.schema import UserLogin
-from app.core.security import verify_password, create_access_token
+from app.core.supabase import supabase
 from app.core.dependencies import get_current_user
+from app.modules.auth.schema import UserLogin
 
 
 router = APIRouter(
@@ -16,47 +13,37 @@ router = APIRouter(
 
 @router.get("/me")
 def get_me(
-    current_user: User = Depends(get_current_user)
+    current_user=Depends(get_current_user)
 ):
     return {
         "id": current_user.id,
-        "name": current_user.name,
-        "email": current_user.email
+        "email": current_user.email,
+        "name": current_user.user_metadata.get("name")
     }
 
 
 @router.post("/login")
-def login(
-    user_data: UserLogin,
-    db: Session = Depends(get_db)
-):
-    user = db.query(User).filter(
-        User.email == user_data.email
-    ).first()
+def login(user_data: UserLogin):
+    try:
+        response = supabase.auth.sign_in_with_password({
+            "email": user_data.email,
+            "password": user_data.password
+        })
 
-    if not user:
+    except Exception:
         raise HTTPException(
             status_code=401,
             detail="Correo o contraseña incorrectos"
         )
 
-    if not verify_password(
-        user_data.password,
-        user.password_hash
-    ):
+    if response.session is None:
         raise HTTPException(
             status_code=401,
-            detail="Correo o contraseña incorrectos"
+            detail="No se pudo iniciar sesión"
         )
-
-    access_token = create_access_token(
-        data={
-            "sub": str(user.id),
-            "email": user.email
-        }
-    )
 
     return {
-        "access_token": access_token,
+        "access_token": response.session.access_token,
+        "refresh_token": response.session.refresh_token,
         "token_type": "bearer"
     }

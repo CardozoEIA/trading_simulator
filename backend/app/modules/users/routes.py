@@ -1,10 +1,6 @@
-import bcrypt
+from fastapi import APIRouter, HTTPException
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-
-from app.database import get_db
-from app.modules.users.model import User
+from app.core.supabase import supabase
 from app.modules.users.schema import UserCreate
 
 
@@ -15,37 +11,33 @@ router = APIRouter(
 
 
 @router.post("/")
-def create_user(
-    user_data: UserCreate,
-    db: Session = Depends(get_db)
-):
-    existing_user = db.query(User).filter(
-        User.email == user_data.email
-    ).first()
+def create_user(user_data: UserCreate):
 
-    if existing_user:
+    try:
+        response = supabase.auth.sign_up({
+            "email": user_data.email,
+            "password": user_data.password,
+            "options": {
+                "data": {
+                    "name": user_data.name
+                }
+            }
+        })
+
+    except Exception as e:
         raise HTTPException(
             status_code=400,
-            detail="El correo ya está registrado"
+            detail=str(e)
         )
 
-    password_hash = bcrypt.hashpw(
-        user_data.password.encode("utf-8"),
-        bcrypt.gensalt()
-    ).decode("utf-8")
-
-    new_user = User(
-        name=user_data.name,
-        email=user_data.email,
-        password_hash=password_hash
-    )
-
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    if response.user is None:
+        raise HTTPException(
+            status_code=400,
+            detail="No se pudo crear el usuario"
+        )
 
     return {
-        "id": new_user.id,
-        "name": new_user.name,
-        "email": new_user.email
+        "id": response.user.id,
+        "email": response.user.email,
+        "name": response.user.user_metadata.get("name")
     }
