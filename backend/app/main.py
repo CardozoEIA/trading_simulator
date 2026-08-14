@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from sqlalchemy import text
 
 from app.database import engine
-from app.routes.users import router as users_router
-from app.routes.auth import router as auth_router
+from app.modules.users.routes import router as users_router
+from app.modules.auth.routes import router as auth_router
 
 
 app = FastAPI(
