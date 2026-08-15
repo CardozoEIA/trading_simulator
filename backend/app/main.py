@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from app.modules.users.routes import router as users_router
 from app.modules.auth.routes import router as auth_router
+from app.modules.backtest.routes import router as backtest_router
 
 
 app = FastAPI(
@@ -18,3 +19,4 @@ def root():
 
 app.include_router(users_router)
 app.include_router(auth_router)
+app.include_router(backtest_router)
