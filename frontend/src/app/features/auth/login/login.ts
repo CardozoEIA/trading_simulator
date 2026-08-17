@@ -2,11 +2,11 @@ import { Component, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Auth } from '../../../core/auth';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-login',
-  imports: [ ReactiveFormsModule ], // No es necesario incluir FormGroup o el resto, acá va lo que verá el html
+  imports: [ ReactiveFormsModule, RouterLink ], // No es necesario incluir FormGroup o el resto, acá va lo que verá el html
   templateUrl: './login.html',
   styleUrl: './login.css',
 })

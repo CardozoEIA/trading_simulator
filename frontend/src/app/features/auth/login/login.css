@@ -54,3 +54,16 @@ button {
   font-weight: 600;
   cursor: pointer;
 }
+
+a {
+  color: var(--golden-accent);
+  text-decoration: none;
+}
+
+a:visited {
+  color: var(--golden-accent);
+}
+
+a:hover {
+  text-decoration: underline;
+}
