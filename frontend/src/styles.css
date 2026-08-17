@@ -1,0 +1,16 @@
+:root {
+    --background-main: #0B1B2B;
+    --surface-text: #F5F3EE;
+    --golden-accent: #C9A15C;
+    --secondary-blue: #5B7B8C;
+    --green-success: #2ECC91;
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Inter', sans-serif;
+}
+
+body {
+    background-color: var(--background-main);
+    color: var(--surface-text);
+    font-family: var(--font-body);
+    margin: 0;
+}
