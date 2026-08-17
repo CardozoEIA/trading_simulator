@@ -1,0 +1,37 @@
+<div class="simulation-configuration-container">
+    <h1>Simulation configuration</h1>
+    <form [formGroup]="simConfigForm" (ngSubmit)="onSubmit()">
+
+        <label for="asset">Assets</label>
+        <select id="asset" formControlName="asset">
+            @for (asset of assets; track asset.symbol) {
+                <option [value]="asset.symbol">{{ asset.name }}</option>
+            }
+        </select>
+
+        <label for="startDate">Start date</label>
+        <input id="startDate" type="date" formControlName="startDate">
+        <label for="endDate">End date</label>
+        <input id="endDate" type="date" formControlName="endDate">
+
+        <button type="submit">Configure simulation</button>
+
+        <a routerLink="/dashboard">Dashboard</a>
+    </form>
+
+    @if (simConfigForm.errors?.['dateRangeInvalid']) {
+        <p class="error-message">Start date must be before end date</p>
+    }
+
+    @if (savedConfig) {
+        <div class="saved-config">
+            <h2>Saved configuration</h2>
+            <ul>
+            <li><strong>Asset:</strong> {{ savedConfig.asset }}</li>
+            <li><strong>From:</strong> {{ savedConfig.start_date }}</li>
+            <li><strong>To:</strong> {{ savedConfig.end_date }}</li>
+            <li><strong>Available records:</strong> {{ savedConfig.records }}</li>
+            </ul>
+        </div>
+    }
+</div>

@@ -1,0 +1,13 @@
+<div class="register-container">
+    <h1>Sign up</h1>
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <label for="name">Name</label>
+        <input id="name" formControlName="name">
+        <label for="email">Email</label>
+        <input id="email" formControlName="email">
+        <label for="password">Password</label>
+        <input id="password" formControlName="password" type="password">
+        <button type="submit">Sign up</button>
+    </form>
+    <p>Already have an account? <a routerLink="/">Sign in</a></p>
+</div>
