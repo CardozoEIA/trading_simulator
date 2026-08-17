@@ -3,6 +3,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Auth } from '../../../core/auth';
 import { Router, RouterLink } from '@angular/router';
+import { Alert } from '../../../shared/alert';
 
 @Component({
   selector: 'app-register',
@@ -14,6 +15,7 @@ export class Register {
 
   private auth = inject(Auth);
   private router = inject(Router);
+  private alert = inject(Alert);
 
   registerForm = new FormGroup({
     name: new FormControl('', [Validators.required]),
@@ -24,8 +26,10 @@ export class Register {
   onSubmit(){
     this.auth.register(this.registerForm.value.name ?? '',
       this.registerForm.value.email ?? '', this.registerForm.value.password ?? '').subscribe({
-        next: (response) => { this.router.navigate(['/']) },
-        error: (error) => { console.log(error) }
+        next: (response) => { this.alert.showSuccess("User registered succesfully!");
+                              this.router.navigate(['/'])
+                            },
+        error: (error) => { this.alert.showError(error.error.detail) }
       })
   }
 }
