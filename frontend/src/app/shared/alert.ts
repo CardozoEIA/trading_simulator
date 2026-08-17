@@ -28,4 +28,19 @@ export class Alert {
       confirmButtonColor: '#C9A15C', // dorado para confirmar
     })
   }
+
+  public confirm(message: string): Promise<boolean> {
+  return Swal.fire({
+    title: 'Are you sure?',
+    text: message,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#C9A15C',
+    cancelButtonColor: '#5B7B8C',
+    confirmButtonText: 'Yes!',
+    cancelButtonText: 'Cancel',
+    background: '#F5F3EE',
+    color: '#0B1B2B',
+  }).then((result) => result.isConfirmed);
+}
 }

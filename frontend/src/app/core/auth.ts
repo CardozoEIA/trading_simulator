@@ -2,21 +2,21 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { LoginResponse } from '../models/login-response.model';
 import { RegisterResponse } from '../models/register-response.model';
-
+import { environment } from '../../environments/environment';
 @Injectable({
   providedIn: 'root',
 })
 export class Auth {
 
   private http = inject(HttpClient)
-  private baseUrl = 'http://localhost:8000';
+  private baseUrl = environment.apiUrl;
 
   public login(email: string, password: string){
     return this.http.post<LoginResponse>(`${this.baseUrl}/auth/login`, { email, password });
   }
 
   public register(name: string, email: string, password: string) {
-    return this.http.post<RegisterResponse>(`${this.baseUrl}/users/`, {name, email, password})
+    return this.http.post<RegisterResponse>(`${this.baseUrl}/users/`, { name, email, password })
   }
 
 

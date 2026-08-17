@@ -1,1 +1,10 @@
-<p>dashboard works!</p>
+<div class="dashboard-container">
+    <header class="dashboard-header">
+        <h1>Market Navigator AI</h1>
+        <button (click)="onLogout()" class="logout-button">Log out</button>
+    </header>
+
+    <section class="quick-actions">
+        <a routerLink="/simulation-config" class="action-card">Confiugre simulation</a>
+    </section>
+</div>
