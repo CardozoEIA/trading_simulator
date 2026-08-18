@@ -7,7 +7,8 @@ from app.modules.backtest.schema import (
 )
 from app.modules.backtest.service import (
     get_available_assets,
-    validate_configuration
+    validate_configuration,
+    save_configuration
 )
 
 
@@ -32,7 +33,5 @@ def configure_backtest(
     configuration: BacktestConfiguration,
     current_user=Depends(get_current_user)
 ):
-    return validate_configuration(
-        configuration,
-        current_user.id
-    )
+    records = validate_configuration(configuration)
+    return save_configuration(configuration, current_user.id, records)

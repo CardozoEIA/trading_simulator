@@ -20,7 +20,8 @@ export class SimulationConfig implements OnInit {
   private backtest = inject(Backtest);
   private alert = inject(Alert);
   savedConfig: BacktestConfigurationResponse | null = null;
-  assets: Asset[] = []; // no puede ser private, el html debe acceder a ella
+  assets: Asset[] = [];
+  submitted = false;
 
   simConfigForm = new FormGroup({
     asset: new FormControl('', Validators.required),
@@ -36,14 +37,36 @@ export class SimulationConfig implements OnInit {
   }
 
   onSubmit(){
+    this.submitted = true;
+
+    if (this.simConfigForm.invalid) {
+      return;
+    }
+
     this.backtest.configureBacktest(this.simConfigForm.value.asset ?? '',
       this.simConfigForm.value.startDate ?? '',
       this.simConfigForm.value.endDate ?? '').subscribe({
 
         next: (response) => { this.savedConfig = response;
           this.alert.showSuccess("Simulation configured succesfully!") },
-        error: (error) => { this.alert.showError(error.error.detail) }
+        error: (error) => { this.alert.showError(this.extractErrorMessage(error)) }
       })
+  }
+
+  private extractErrorMessage(error: any): string {
+    const detail = error?.error?.detail;
+
+    if (typeof detail === 'string') {
+      return detail;
+    }
+
+    if (Array.isArray(detail)) {
+      return detail
+        .map((e: any) => e.msg ?? 'Validation error')
+        .join('. ');
+    }
+
+    return 'An unexpected error occurred. Please try again.';
   }
 }
 

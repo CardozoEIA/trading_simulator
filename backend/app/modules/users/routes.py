@@ -12,7 +12,6 @@ router = APIRouter(
 
 @router.post("/")
 def create_user(user_data: UserCreate):
-
     try:
         response = supabase.auth.sign_up({
             "email": user_data.email,
@@ -23,17 +22,16 @@ def create_user(user_data: UserCreate):
                 }
             }
         })
-
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=400,
-            detail=str(e)
+            detail="Could not create the user. The email may already be registered."
         )
 
     if response.user is None:
         raise HTTPException(
             status_code=400,
-            detail="No se pudo crear el usuario"
+            detail="Could not create the user"
         )
 
     return {

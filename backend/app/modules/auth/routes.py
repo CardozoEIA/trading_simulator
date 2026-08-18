@@ -29,17 +29,16 @@ def login(user_data: UserLogin):
             "email": user_data.email,
             "password": user_data.password
         })
-
     except Exception:
         raise HTTPException(
             status_code=401,
-            detail="Correo o contraseña incorrectos"
+            detail="Incorrect email or password"
         )
 
     if response.session is None:
         raise HTTPException(
             status_code=401,
-            detail="No se pudo iniciar sesión"
+            detail="Could not sign in"
         )
 
     return {

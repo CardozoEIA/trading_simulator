@@ -4,24 +4,35 @@
 
         <label for="asset">Assets</label>
         <select id="asset" formControlName="asset">
+            <option value="" disabled>Select an asset</option>
             @for (asset of assets; track asset.symbol) {
                 <option [value]="asset.symbol">{{ asset.name }}</option>
             }
         </select>
+        @if (simConfigForm.get('asset')?.invalid && submitted) {
+            <p class="error-message">Please select an asset</p>
+        }
 
         <label for="startDate">Start date</label>
         <input id="startDate" type="date" formControlName="startDate">
+        @if (simConfigForm.get('startDate')?.invalid && submitted) {
+            <p class="error-message">Start date is required</p>
+        }
+
         <label for="endDate">End date</label>
         <input id="endDate" type="date" formControlName="endDate">
+        @if (simConfigForm.get('endDate')?.invalid && submitted) {
+            <p class="error-message">End date is required</p>
+        }
+
+        @if (simConfigForm.errors?.['dateRangeInvalid'] && submitted) {
+            <p class="error-message">Start date must be before end date</p>
+        }
 
         <button type="submit">Configure simulation</button>
 
         <a routerLink="/dashboard">Dashboard</a>
     </form>
-
-    @if (simConfigForm.errors?.['dateRangeInvalid']) {
-        <p class="error-message">Start date must be before end date</p>
-    }
 
     @if (savedConfig) {
         <div class="saved-config">
