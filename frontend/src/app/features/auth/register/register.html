@@ -2,11 +2,32 @@
     <h1>Sign up</h1>
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
         <label for="name">Name</label>
-        <input id="name" formControlName="name">
+        <input id="name" formControlName="name"
+               [class.invalid]="registerForm.get('name')?.invalid && submitted">
+        @if (registerForm.get('name')?.invalid && submitted) {
+            <p class="error-message">Name is required</p>
+        }
+
         <label for="email">Email</label>
-        <input id="email" formControlName="email">
+        <input id="email" formControlName="email"
+               [class.invalid]="registerForm.get('email')?.invalid && submitted">
+        @if (registerForm.get('email')?.hasError('required') && submitted) {
+            <p class="error-message">Email is required</p>
+        }
+        @if (registerForm.get('email')?.hasError('email') && submitted) {
+            <p class="error-message">Enter a valid email address</p>
+        }
+
         <label for="password">Password</label>
-        <input id="password" formControlName="password" type="password">
+        <input id="password" formControlName="password" type="password"
+               [class.invalid]="registerForm.get('password')?.invalid && submitted">
+        @if (registerForm.get('password')?.hasError('required') && submitted) {
+            <p class="error-message">Password is required</p>
+        }
+        @if (registerForm.get('password')?.hasError('minlength') && submitted) {
+            <p class="error-message">Password must be at least 6 characters</p>
+        }
+
         <button type="submit">Sign up</button>
     </form>
     <p>Already have an account? <a routerLink="/">Sign in</a></p>
