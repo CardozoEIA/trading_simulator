@@ -21,7 +21,6 @@ export class Dashboard {
     if (confirmed) {
       this.auth.logout()
       this.router.navigate(["/"])
-      this.alert.showSuccess("You have logged out successfully!")
     }
   }
 

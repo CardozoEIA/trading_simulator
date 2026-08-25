@@ -32,7 +32,6 @@ export class Login {
     this.auth.login(this.loginForm.value.email ?? '',
       this.loginForm.value.password ?? '').subscribe({
       next: (response) => { this.auth.saveToken(response.access_token);
-                            this.alert.showSuccess("Login succesful!");
                             this.router.navigate(['/dashboard']);
                            },
       error: (error) => { this.alert.showError(this.extractErrorMessage(error)) }
