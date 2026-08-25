@@ -49,24 +49,8 @@ export class SimulationConfig implements OnInit {
 
         next: (response) => { this.savedConfig = response;
           this.alert.showSuccess("Simulation configured succesfully!") },
-        error: (error) => { this.alert.showError(this.extractErrorMessage(error)) }
+        error: (error) => { this.alert.showApiError(error) }
       })
-  }
-
-  private extractErrorMessage(error: any): string {
-    const detail = error?.error?.detail;
-
-    if (typeof detail === 'string') {
-      return detail;
-    }
-
-    if (Array.isArray(detail)) {
-      return detail
-        .map((e: any) => e.msg ?? 'Validation error')
-        .join('. ');
-    }
-
-    return 'An unexpected error occurred. Please try again.';
   }
 }
 
