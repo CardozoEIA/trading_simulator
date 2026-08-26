@@ -7,6 +7,7 @@ from app.modules.backtest.schema import (
 )
 from app.modules.backtest.service import (
     get_available_assets,
+    get_available_strategies,
     validate_configuration,
     save_configuration
 )
@@ -23,6 +24,13 @@ def get_assets(
     current_user=Depends(get_current_user)
 ):
     return get_available_assets()
+
+
+@router.get("/strategies")
+def get_strategies(
+    current_user=Depends(get_current_user)
+):
+    return get_available_strategies()
 
 
 @router.post(
