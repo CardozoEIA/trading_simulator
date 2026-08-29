@@ -10,18 +10,47 @@ AVAILABLE_ASSETS = {
 }
 
 AVAILABLE_STRATEGIES = {
-    "SMA": "Moving Average Crossover",
-    "RSI": "Relative Strength Index",
-    "BOLLINGER": "Bollinger Bands"
+    "SMA": {
+        "name": "Moving Average Crossover",
+        "description": (
+            "Buys when a short-term average of the price rises above a "
+            "long-term average, and sells when it falls below it. It is "
+            "used to follow the general trend of the market."
+        )
+    },
+    "RSI": {
+        "name": "Relative Strength Index",
+        "description": (
+            "Measures how fast and how much the price has moved recently. "
+            "It buys when the asset looks oversold and sells when it looks "
+            "overbought, aiming to catch short-term reversals."
+        )
+    },
+    "BOLLINGER": {
+        "name": "Bollinger Bands",
+        "description": (
+            "Draws a price band based on recent volatility. It buys when "
+            "the price touches the lower band and sells when it touches "
+            "the upper band, betting that prices tend to return to their "
+            "average."
+        )
+    }
 }
+
+
+def get_available_strategies():
+    return [
+        {
+            "code": code,
+            "name": data["name"],
+            "description": data["description"]
+        }
+        for code, data in AVAILABLE_STRATEGIES.items()
+    ]
 
 
 def get_available_assets():
     return [{"symbol": s, "name": n} for s, n in AVAILABLE_ASSETS.items()]
-
-
-def get_available_strategies():
-    return [{"code": c, "name": n} for c, n in AVAILABLE_STRATEGIES.items()]
 
 
 def validate_configuration(configuration: BacktestConfiguration) -> int:
