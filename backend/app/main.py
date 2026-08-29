@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.modules.users.routes import router as users_router
 from app.modules.auth.routes import router as auth_router
 from app.modules.backtest.routes import router as backtest_router
+from app.modules.risk.routes import router as risk_router
+from app.modules.simulations.routes import router as simulations_router
 
 app = FastAPI(
     title="Market Navigator AI API"
@@ -27,3 +29,5 @@ def root():
 app.include_router(users_router)
 app.include_router(auth_router)
 app.include_router(backtest_router)
+app.include_router(risk_router)
+app.include_router(simulations_router)

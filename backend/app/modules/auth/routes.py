@@ -24,6 +24,7 @@ def get_me(
 
 @router.post("/login")
 def login(user_data: UserLogin):
+    
     try:
         response = supabase.auth.sign_in_with_password({
             "email": user_data.email,
