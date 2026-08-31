@@ -4,19 +4,53 @@ from app.core.supabase import supabase
 from app.modules.backtest.schema import BacktestConfiguration
 
 
+
 AVAILABLE_ASSETS = {
     "SP500": "S&P 500"
 }
 
+AVAILABLE_STRATEGIES = {
+    "SMA": {
+        "name": "Moving Average Crossover",
+        "description": (
+            "Buys when a short-term average of the price rises above a "
+            "long-term average, and sells when it falls below it. It is "
+            "used to follow the general trend of the market."
+        )
+    },
+    "RSI": {
+        "name": "Relative Strength Index",
+        "description": (
+            "Measures how fast and how much the price has moved recently. "
+            "It buys when the asset looks oversold and sells when it looks "
+            "overbought, aiming to catch short-term reversals."
+        )
+    },
+    "BOLLINGER": {
+        "name": "Bollinger Bands",
+        "description": (
+            "Draws a price band based on recent volatility. It buys when "
+            "the price touches the lower band and sells when it touches "
+            "the upper band, betting that prices tend to return to their "
+            "average."
+        )
+    }
+}
 
-def get_available_assets():
+
+def get_available_strategies():
     return [
         {
-            "symbol": symbol,
-            "name": name
+            "code": code,
+            "name": data["name"],
+            "description": data["description"]
         }
-        for symbol, name in AVAILABLE_ASSETS.items()
+        for code, data in AVAILABLE_STRATEGIES.items()
     ]
+
+
+def get_available_assets():
+    return [{"symbol": s, "name": n} for s, n in AVAILABLE_ASSETS.items()]
 
 
 def validate_configuration(configuration: BacktestConfiguration) -> int:
@@ -60,12 +94,14 @@ def validate_configuration(configuration: BacktestConfiguration) -> int:
 
 
 def save_configuration(configuration: BacktestConfiguration, user_id: str, records: int) -> dict:
-    """Persists an already-validated configuration."""
+    """Persists a fully-validated configuration in a single write."""
     configuration_data = {
         "user_id": user_id,
         "asset": configuration.asset,
         "start_date": configuration.start_date.isoformat(),
-        "end_date": configuration.end_date.isoformat()
+        "end_date": configuration.end_date.isoformat(),
+        "initial_capital": configuration.initial_capital,
+        "strategy": configuration.strategy.value
     }
 
     try:
@@ -94,6 +130,8 @@ def save_configuration(configuration: BacktestConfiguration, user_id: str, recor
         "asset": saved["asset"],
         "start_date": saved["start_date"],
         "end_date": saved["end_date"],
+        "initial_capital": saved["initial_capital"],
+        "strategy": saved["strategy"],
         "data_available": True,
         "records": records
     }

@@ -22,7 +22,8 @@ def create_user(user_data: UserCreate):
                 }
             }
         })
-    except Exception:
+    except Exception as e:
+        print(f"SIGN UP ERROR: {e}")
         raise HTTPException(
             status_code=400,
             detail="Could not create the user. The email may already be registered."
