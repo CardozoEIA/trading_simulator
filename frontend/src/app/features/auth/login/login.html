@@ -1,24 +1,45 @@
-<div class = "login-container">
-    <h1>Sign in</h1>
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <label for="email">Email</label>
-        <input id="email" formControlName="email"
-               [class.invalid]="loginForm.get('email')?.invalid && submitted">
-        @if (loginForm.get('email')?.hasError('required') && submitted) {
-            <p class="error-message">Email is required</p>
-        }
-        @if (loginForm.get('email')?.hasError('email') && submitted) {
-            <p class="error-message">Enter a valid email address</p>
-        }
+<div class="auth-layout">
+  <aside class="brand-panel">
+    <span class="ticker-label">SPX · EDUCATIONAL SIMULATION</span>
+    <h2 class="brand-title">Market Navigator AI</h2>
+    <p class="brand-tagline">Learn to trade with transparent, explainable decisions — no real money involved.</p>
+    <svg class="trend-chart" viewBox="0 0 400 220" preserveAspectRatio="none">
+        <path
+            class="trend-path"
+            d="M0,170 L40,150 L70,165 L100,130 L130,145 L160,100 L190,120 L220,80 L250,95 L280,60 L310,75 L340,40 L370,55 L400,30"
+            fill="none"
+            stroke="var(--golden-accent)"
+            stroke-width="2"
+            pathLength="1"
+        />
+        <circle class="trend-marker" cx="400" cy="30" r="5" fill="var(--golden-accent)" />
+    </svg>
+  </aside>
 
-        <label for="password">Password</label>
-        <input id="password" formControlName="password" type="password"
-               [class.invalid]="loginForm.get('password')?.invalid && submitted">
-        @if (loginForm.get('password')?.hasError('required') && submitted) {
-            <p class="error-message">Password is required</p>
-        }
+  <div class="form-panel">
+    <div class="login-container">
+      <h1>Sign in</h1>
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <label for="email">Email</label>
+            <input id="email" formControlName="email"
+                [class.invalid]="loginForm.get('email')?.invalid && submitted">
+            @if (loginForm.get('email')?.hasError('required') && submitted) {
+                <p class="error-message">Email is required</p>
+            }
+            @if (loginForm.get('email')?.hasError('email') && submitted) {
+                <p class="error-message">Enter a valid email address</p>
+            }
 
-        <button type="submit">Sign in</button>
-    </form>
-    <p>Don't have an account? <a routerLink="/register">Sign up</a></p>
+            <label for="password">Password</label>
+            <input id="password" formControlName="password" type="password"
+                [class.invalid]="loginForm.get('password')?.invalid && submitted">
+            @if (loginForm.get('password')?.hasError('required') && submitted) {
+                <p class="error-message">Password is required</p>
+            }
+
+            <button type="submit">Sign in</button>
+            <p>Don't have an account? <a routerLink="/register">Sign up</a></p>
+      </form>
+    </div>
+  </div>
 </div>

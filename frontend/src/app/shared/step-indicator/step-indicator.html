@@ -1,0 +1,11 @@
+<div class="step-indicator">
+  @for (step of steps; track step; let i = $index) {
+    <div class="step" [class.active]="i + 1 === currentStep" [class.completed]="i + 1 < currentStep">
+      <div class="step-circle">{{ i + 1 }}</div>
+      <span class="step-label">{{ step }}</span>
+    </div>
+    @if (i < steps.length - 1) {
+      <div class="step-connector" [class.completed]="i + 1 < currentStep"></div>
+    }
+  }
+</div>

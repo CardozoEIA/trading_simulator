@@ -7,10 +7,11 @@ import { Alert } from '../../shared/alert';
 import { RouterLink } from '@angular/router';
 import { BacktestConfigurationResponse } from '../../models/backtest-configuration-response.model';
 import { AbstractControl, ValidationErrors } from '@angular/forms';
+import { StepIndicator } from '../../shared/step-indicator/step-indicator';
 
 @Component({
   selector: 'app-simulation-config',
-  imports: [ ReactiveFormsModule, RouterLink ],
+  imports: [ ReactiveFormsModule, RouterLink, StepIndicator ],
   templateUrl: './simulation-config.html',
   styleUrl: './simulation-config.css',
 })
