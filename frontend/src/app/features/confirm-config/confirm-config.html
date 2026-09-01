@@ -1,40 +1,49 @@
 <div class="confirm-config-container">
   <app-step-indicator
-    [steps]="['Asset & Period', 'Capital & Strategy', 'Risk', 'Confirm']"
-    [currentStep]="4">
+    [steps]="['Asset, Capital & Strategy', 'Risk', 'Confirm']"
+    [currentStep]="3">
   </app-step-indicator>
 
-  <h1>Review your configuration</h1>
+  <span class="section-tag">STEP 3 OF 3 · FINAL REVIEW</span>
+  <h1>Review before you start</h1>
+  <p class="section-intro">Double-check everything below. Once you confirm, the simulation will run against historical data using these exact settings.</p>
 
   @if (summary) {
-    <div class="summary-card">
-      <div class="summary-section">
-        <h2>Simulation</h2>
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="summary-card-header">
+          <span class="dot asset-dot"></span>
+          <h2>Simulation</h2>
+        </div>
         <ul>
-          <li><strong>Asset:</strong> {{ summary.asset }}</li>
-          <li><strong>From:</strong> {{ summary.start_date }}</li>
-          <li><strong>To:</strong> {{ summary.end_date }}</li>
-          <li><strong>Initial capital:</strong> ${{ summary.initial_capital }}</li>
-          <li><strong>Strategy:</strong> {{ summary.strategy }}</li>
+          <li><span class="k">Asset</span><span class="v">{{ summary.asset }}</span></li>
+          <li><span class="k">Period</span><span class="v">{{ summary.start_date }} → {{ summary.end_date }}</span></li>
+          <li><span class="k">Initial capital</span><span class="v">${{ summary.initial_capital }}</span></li>
+          <li><span class="k">Strategy</span><span class="v">{{ summary.strategy }}</span></li>
         </ul>
-        <a routerLink="/simulation-config">Edit</a>
+        <a routerLink="/simulation-config">Edit this step</a>
       </div>
 
-      <div class="summary-section">
-        <h2>Risk parameters</h2>
+      <div class="summary-card">
+        <div class="summary-card-header">
+          <span class="dot risk-dot"></span>
+          <h2>Risk parameters</h2>
+        </div>
         <ul>
-          <li><strong>Stop-loss:</strong> {{ summary.risk.stop_loss_percentage }}%</li>
-          <li><strong>Max position size:</strong> {{ summary.risk.max_position_size }}%</li>
-          <li><strong>Max drawdown:</strong> {{ summary.risk.max_drawdown }}%</li>
+          <li><span class="k">Stop-loss</span><span class="v">{{ summary.risk.stop_loss_percentage }}%</span></li>
+          <li><span class="k">Max position size</span><span class="v">{{ summary.risk.max_position_size }}%</span></li>
+          <li><span class="k">Max drawdown</span><span class="v">{{ summary.risk.max_drawdown }}%</span></li>
         </ul>
-        <a [routerLink]="['/risk-config', configurationId]">Edit</a>
+        <a [routerLink]="['/risk-config', configurationId]">Edit this step</a>
       </div>
     </div>
 
-    <button (click)="onConfirm()" [disabled]="starting">
-      {{ starting ? 'Starting...' : 'Confirm & start simulation' }}
+    <button (click)="onConfirm()" [disabled]="starting" class="confirm-button">
+      {{ starting ? 'Starting simulation…' : 'Confirm & start simulation' }}
     </button>
+  } @else {
+    <p class="loading-text">Loading your configuration…</p>
   }
 
-  <a routerLink="/dashboard">Dashboard</a>
+  <a routerLink="/dashboard" class="back-link">Back to dashboard</a>
 </div>

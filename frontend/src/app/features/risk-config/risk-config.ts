@@ -60,7 +60,6 @@ export class RiskConfig implements OnInit {
     this.risk.configureRisk(payload).subscribe({
       next: (response) => {
         this.savedRisk = response;
-        this.alert.showSuccess('Risk configuration saved successfully!');
         this.router.navigate(['/confirm-config', this.configurationId]);
       },
       error: (error) => { this.alert.showApiError(error); }

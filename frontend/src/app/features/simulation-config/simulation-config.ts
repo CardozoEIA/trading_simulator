@@ -57,7 +57,6 @@ export class SimulationConfig implements OnInit {
       next: (response) => {
         this.savedConfig = response;
         this.router.navigate(['/risk-config', response.id]);
-        this.alert.showSuccess("Simulation configured succesfully!")
       },
       error: (error) => { this.alert.showApiError(error) }
     })

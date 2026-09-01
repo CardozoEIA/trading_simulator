@@ -1,55 +1,76 @@
 <div class="risk-config-container">
   <app-step-indicator
-    [steps]="['Asset & Period', 'Capital & Strategy', 'Risk', 'Confirm']"
-    [currentStep]="3">
+    [steps]="['Asset, Capital & Strategy', 'Risk', 'Confirm']"
+    [currentStep]="2">
   </app-step-indicator>
 
-  <h1>Risk configuration</h1>
+  <span class="section-tag">STEP 2 OF 3 · RISK CONTROLS</span>
+  <h1>Configure your risk limits</h1>
+  <p class="section-intro">These limits protect your simulated capital. If a trade would break any of them, it will be rejected instead of opened.</p>
 
   <form [formGroup]="riskForm" (ngSubmit)="onSubmit()">
 
-    <label for="stopLossPercentage">Stop-loss (%)</label>
-    <input id="stopLossPercentage" type="number" step="0.1" formControlName="stopLossPercentage"
-           [class.invalid]="riskForm.get('stopLossPercentage')?.invalid && submitted">
-    @if (riskForm.get('stopLossPercentage')?.hasError('required') && submitted) {
-      <p class="error-message">Stop-loss is required</p>
-    }
-    @if (riskForm.get('stopLossPercentage')?.hasError('percentageOutOfRange') && submitted) {
-      <p class="error-message">Must be greater than 0 and at most 100</p>
-    }
+    <div class="field-group">
+      <label for="stopLossPercentage">Stop-loss</label>
+      <p class="field-hint">The percentage loss at which an open position is automatically closed.</p>
+      <div class="input-suffix">
+        <input id="stopLossPercentage" type="number" step="0.1" formControlName="stopLossPercentage"
+               [class.invalid]="riskForm.get('stopLossPercentage')?.invalid && submitted">
+        <span class="suffix">%</span>
+      </div>
+      @if (riskForm.get('stopLossPercentage')?.hasError('required') && submitted) {
+        <p class="error-message">Stop-loss is required</p>
+      }
+      @if (riskForm.get('stopLossPercentage')?.hasError('percentageOutOfRange') && submitted) {
+        <p class="error-message">Must be greater than 0 and at most 100</p>
+      }
+    </div>
 
-    <label for="maxPositionSize">Max position size (%)</label>
-    <input id="maxPositionSize" type="number" step="0.1" formControlName="maxPositionSize"
-           [class.invalid]="riskForm.get('maxPositionSize')?.invalid && submitted">
-    @if (riskForm.get('maxPositionSize')?.hasError('required') && submitted) {
-      <p class="error-message">Max position size is required</p>
-    }
-    @if (riskForm.get('maxPositionSize')?.hasError('percentageOutOfRange') && submitted) {
-      <p class="error-message">Must be greater than 0 and at most 100</p>
-    }
+    <div class="field-group">
+      <label for="maxPositionSize">Max position size</label>
+      <p class="field-hint">The largest share of your capital that can go into a single trade.</p>
+      <div class="input-suffix">
+        <input id="maxPositionSize" type="number" step="0.1" formControlName="maxPositionSize"
+               [class.invalid]="riskForm.get('maxPositionSize')?.invalid && submitted">
+        <span class="suffix">%</span>
+      </div>
+      @if (riskForm.get('maxPositionSize')?.hasError('required') && submitted) {
+        <p class="error-message">Max position size is required</p>
+      }
+      @if (riskForm.get('maxPositionSize')?.hasError('percentageOutOfRange') && submitted) {
+        <p class="error-message">Must be greater than 0 and at most 100</p>
+      }
+    </div>
 
-    <label for="maxDrawdown">Max drawdown (%)</label>
-    <input id="maxDrawdown" type="number" step="0.1" formControlName="maxDrawdown"
-           [class.invalid]="riskForm.get('maxDrawdown')?.invalid && submitted">
-    @if (riskForm.get('maxDrawdown')?.hasError('required') && submitted) {
-      <p class="error-message">Max drawdown is required</p>
-    }
-    @if (riskForm.get('maxDrawdown')?.hasError('percentageOutOfRange') && submitted) {
-      <p class="error-message">Must be greater than 0 and at most 100</p>
-    }
+    <div class="field-group">
+      <label for="maxDrawdown">Max drawdown</label>
+      <p class="field-hint">The maximum cumulative loss allowed before the simulation stops itself.</p>
+      <div class="input-suffix">
+        <input id="maxDrawdown" type="number" step="0.1" formControlName="maxDrawdown"
+               [class.invalid]="riskForm.get('maxDrawdown')?.invalid && submitted">
+        <span class="suffix">%</span>
+      </div>
+      @if (riskForm.get('maxDrawdown')?.hasError('required') && submitted) {
+        <p class="error-message">Max drawdown is required</p>
+      }
+      @if (riskForm.get('maxDrawdown')?.hasError('percentageOutOfRange') && submitted) {
+        <p class="error-message">Must be greater than 0 and at most 100</p>
+      }
+    </div>
 
     <button type="submit">Save risk configuration</button>
-    <a routerLink="/dashboard">Dashboard</a>
+    <a routerLink="/dashboard">Back to dashboard</a>
   </form>
 
   @if (savedRisk) {
     <div class="saved-config">
-      <h2>Saved risk configuration</h2>
-      <ul>
-        <li><strong>Stop-loss:</strong> {{ savedRisk.stop_loss_percentage }}%</li>
-        <li><strong>Max position size:</strong> {{ savedRisk.max_position_size }}%</li>
-        <li><strong>Max drawdown:</strong> {{ savedRisk.max_drawdown }}%</li>
-      </ul>
+      <span class="saved-badge">✓ Saved</span>
+      <h2>Risk configuration</h2>
+      <div class="saved-grid">
+        <div><span class="saved-label">Stop-loss</span><span class="saved-value">{{ savedRisk.stop_loss_percentage }}%</span></div>
+        <div><span class="saved-label">Max position</span><span class="saved-value">{{ savedRisk.max_position_size }}%</span></div>
+        <div><span class="saved-label">Max drawdown</span><span class="saved-value">{{ savedRisk.max_drawdown }}%</span></div>
+      </div>
     </div>
   }
 </div>

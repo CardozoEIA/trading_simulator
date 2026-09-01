@@ -1,6 +1,8 @@
 <div class="simulation-configuration-container">
-    <app-step-indicator [steps]="['Asset & Period', 'Capital & Strategy', 'Risk', 'Confirm']" [currentStep]="1"></app-step-indicator>
-    <h1>Simulation configuration</h1>
+    <app-step-indicator
+    [steps]="['Asset, Capital & Strategy', 'Risk', 'Confirm']"
+    [currentStep]="1">
+    </app-step-indicator>    <h1>Simulation configuration</h1>
     <form [formGroup]="simConfigForm" (ngSubmit)="onSubmit()">
 
         <label for="asset">Assets</label>

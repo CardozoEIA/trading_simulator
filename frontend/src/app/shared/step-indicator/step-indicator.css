@@ -9,6 +9,8 @@
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
+  width: 90px;
+  flex-shrink: 0;
 }
 
 .step-circle {
@@ -45,6 +47,11 @@
   color: var(--secondary-blue);
   text-align: center;
   max-width: 90px;
+  min-height: 2.2rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  line-height: 1.1;
 }
 
 .step.active .step-label {
