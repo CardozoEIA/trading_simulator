@@ -1,0 +1,73 @@
+.step-indicator {
+  display: flex;
+  align-items: center;
+  margin-bottom: 3rem;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 90px;
+  flex-shrink: 0;
+}
+
+.step-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: 2px solid var(--secondary-blue);
+  color: var(--secondary-blue);
+  background-color: transparent;
+  transition: all 0.3s ease;
+}
+
+.step.active .step-circle {
+  border-color: var(--golden-accent);
+  background-color: var(--golden-accent);
+  color: var(--background-main);
+}
+
+.step.completed .step-circle {
+  border-color: var(--golden-accent);
+  color: var(--golden-accent);
+  background-color: transparent;
+}
+
+.step-label {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--secondary-blue);
+  text-align: center;
+  max-width: 90px;
+  min-height: 2.2rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  line-height: 1.1;
+}
+
+.step.active .step-label {
+  color: var(--surface-text);
+  font-weight: 600;
+}
+
+.step-connector {
+  flex: 1;
+  height: 2px;
+  background-color: var(--secondary-blue);
+  margin: 0 0.5rem;
+  margin-bottom: 1.75rem;
+  transition: background-color 0.3s ease;
+}
+
+.step-connector.completed {
+  background-color: var(--golden-accent);
+}

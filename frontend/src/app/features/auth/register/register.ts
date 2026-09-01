@@ -36,23 +36,7 @@ export class Register {
         next: (response) => { this.alert.showSuccess("User registered succesfully!");
                               this.router.navigate(['/'])
                             },
-        error: (error) => { this.alert.showError(this.extractErrorMessage(error)) }
+        error: (error) => { this.alert.showApiError(error) }
       })
-  }
-
-  private extractErrorMessage(error: any): string {
-    const detail = error?.error?.detail;
-
-    if (typeof detail === 'string') {
-      return detail;
-    }
-
-    if (Array.isArray(detail)) {
-      return detail
-        .map((e: any) => e.msg ?? 'Validation error')
-        .join('. ');
-    }
-
-    return 'An unexpected error occurred. Please try again.';
   }
 }

@@ -34,23 +34,7 @@ export class Login {
       next: (response) => { this.auth.saveToken(response.access_token);
                             this.router.navigate(['/dashboard']);
                            },
-      error: (error) => { this.alert.showError(this.extractErrorMessage(error)) }
+      error: (error) => { this.alert.showApiError(error) }
     });
-  }
-
-  private extractErrorMessage(error: any): string {
-    const detail = error?.error?.detail;
-
-    if (typeof detail === 'string') {
-      return detail;
-    }
-
-    if (Array.isArray(detail)) {
-      return detail
-        .map((e: any) => e.msg ?? 'Validation error')
-        .join('. ');
-    }
-
-    return 'An unexpected error occurred. Please try again.';
   }
 }

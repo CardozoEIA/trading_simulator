@@ -58,6 +58,7 @@ button {
 a {
   color: var(--golden-accent);
   text-decoration: none;
+  align-self: self-start;
 }
 
 a:visited {

@@ -1,6 +1,25 @@
-<div class="register-container">
-    <h1>Sign up</h1>
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+<div class="auth-layout">
+  <aside class="brand-panel">
+    <span class="ticker-label">SPX · EDUCATIONAL SIMULATION</span>
+    <h2 class="brand-title">Market Navigator AI</h2>
+    <p class="brand-tagline">Learn to trade with transparent, explainable decisions — no real money involved.</p>
+    <svg class="trend-chart" viewBox="0 0 400 220" preserveAspectRatio="none">
+        <path
+            class="trend-path"
+            d="M0,170 L40,150 L70,165 L100,130 L130,145 L160,100 L190,120 L220,80 L250,95 L280,60 L310,75 L340,40 L370,55 L400,30"
+            fill="none"
+            stroke="var(--golden-accent)"
+            stroke-width="2"
+            pathLength="1"
+        />
+        <circle class="trend-marker" cx="400" cy="30" r="5" fill="var(--golden-accent)" />
+    </svg>
+  </aside>
+
+  <div class="form-panel">
+    <div class="register-container">
+      <h1>Sign up</h1>
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
         <label for="name">Name</label>
         <input id="name" formControlName="name"
                [class.invalid]="registerForm.get('name')?.invalid && submitted">
@@ -29,6 +48,8 @@
         }
 
         <button type="submit">Sign up</button>
-    </form>
-    <p>Already have an account? <a routerLink="/">Sign in</a></p>
+        <p>Already have an account? <a routerLink="/">Sign in</a></p>
+      </form>
+    </div>
+  </div>
 </div>

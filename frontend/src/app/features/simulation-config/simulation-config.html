@@ -1,5 +1,8 @@
 <div class="simulation-configuration-container">
-    <h1>Simulation configuration</h1>
+    <app-step-indicator
+    [steps]="['Asset, Capital & Strategy', 'Risk', 'Confirm']"
+    [currentStep]="1">
+    </app-step-indicator>    <h1>Simulation configuration</h1>
     <form [formGroup]="simConfigForm" (ngSubmit)="onSubmit()">
 
         <label for="asset">Assets</label>
@@ -27,6 +30,24 @@
 
         @if (simConfigForm.errors?.['dateRangeInvalid'] && submitted) {
             <p class="error-message">Start date must be before end date</p>
+        }
+
+        <label for="initialCapital">Initial capital (USD)</label>
+        <input id="initialCapital" type="number" formControlName="initialCapital"
+            [class.invalid]="simConfigForm.get('initialCapital')?.invalid && submitted">
+        @if (simConfigForm.get('initialCapital')?.invalid && submitted) {
+            <p class="error-message">Enter a valid initial capital</p>
+        }
+
+        <label for="strategy">Strategy</label>
+        <select id="strategy" formControlName="strategy">
+            <option value="" disabled>Select a strategy</option>
+            <option value="SMA">Simple Moving Average Crossover</option>
+            <option value="RSI">RSI Overbought/Oversold</option>
+            <option value="BOLLINGER">Bollinger Bands Breakout</option>
+        </select>
+        @if (simConfigForm.get('strategy')?.invalid && submitted) {
+            <p class="error-message">Please select a strategy</p>
         }
 
         <button type="submit">Configure simulation</button>

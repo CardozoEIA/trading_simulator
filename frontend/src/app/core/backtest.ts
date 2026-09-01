@@ -16,7 +16,13 @@ export class Backtest {
     return this.http.get<Asset[]>(`${this.baseUrl}/backtest/assets`)
   }
 
-  public configureBacktest(asset: string, startDate: string, endDate: string){
-    return this.http.post<BacktestConfigurationResponse>(`${this.baseUrl}/backtest/configuration`, { asset: asset, start_date: startDate, end_date: endDate })
-  }
+  public configureBacktest(asset: string, startDate: string, endDate: string, initialCapital: number, strategy: string){
+    return this.http.post<BacktestConfigurationResponse>(`${this.baseUrl}/backtest/configuration`, {
+      asset: asset,
+      start_date: startDate,
+      end_date: endDate,
+      initial_capital: initialCapital,
+      strategy: strategy
+    })
+}
 }

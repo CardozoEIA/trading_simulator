@@ -1,0 +1,48 @@
+<div class="simulation-status-container">
+  <span class="section-tag">SIMULATION MONITOR</span>
+  <h1>Simulation status</h1>
+
+  @if (simulation) {
+    <div class="status-card">
+      <div class="status-badge" [class]="simulation.status.toLowerCase()">
+        @if (simulation.status === 'RUNNING') {
+          <span class="pulse-dot"></span>
+        }
+        @if (simulation.status === 'FINISHED') {
+          <span class="badge-icon">✓</span>
+        }
+        @if (simulation.status === 'STOPPED_BY_RISK') {
+          <span class="badge-icon">!</span>
+        }
+        <span>
+          {{ simulation.status === 'RUNNING' ? 'In progress' : simulation.status === 'FINISHED' ? 'Finished' : 'Stopped due to risk' }}
+        </span>
+      </div>
+
+      <p class="status-description">
+        @if (simulation.status === 'RUNNING') {
+          Your simulation is running against historical data. This page updates automatically.
+        }
+        @if (simulation.status === 'FINISHED') {
+          The simulation completed successfully. Results will be available for review.
+        }
+        @if (simulation.status === 'STOPPED_BY_RISK') {
+          The simulation was halted because a configured risk limit was reached.
+        }
+      </p>
+
+      <ul>
+        <li><span class="k">Simulation ID</span><span class="v mono">{{ simulation.id }}</span></li>
+        <li><span class="k">Configuration ID</span><span class="v mono">{{ simulation.configuration_id }}</span></li>
+        <li><span class="k">Started at</span><span class="v">{{ simulation.started_at }}</span></li>
+        @if (simulation.finished_at) {
+          <li><span class="k">Finished at</span><span class="v">{{ simulation.finished_at }}</span></li>
+        }
+      </ul>
+    </div>
+  } @else {
+    <p class="loading-text">Loading simulation…</p>
+  }
+
+  <a routerLink="/dashboard">Back to dashboard</a>
+</div>

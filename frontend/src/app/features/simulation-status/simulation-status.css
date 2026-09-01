@@ -1,0 +1,152 @@
+.simulation-status-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 1.5rem;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.section-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: var(--golden-accent);
+  margin-bottom: 0.75rem;
+}
+
+h1 {
+  font-family: var(--font-display);
+  color: var(--surface-text);
+  font-size: 2.25rem;
+  margin: 0 0 2rem 0;
+}
+
+.status-card {
+  background-color: var(--surface-text);
+  color: var(--background-main);
+  padding: 2rem;
+  border-radius: 4px;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  border-top: 4px solid;
+  border-image: linear-gradient(to right, var(--golden-accent), var(--secondary-blue)) 1;
+  animation: fade-in-up 0.5s ease-out;
+}
+
+.status-badge {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+}
+
+.status-badge.running {
+  background-color: var(--secondary-blue);
+  color: var(--surface-text);
+}
+
+.status-badge.finished {
+  background-color: var(--green-success);
+  color: var(--background-main);
+}
+
+.status-badge.stopped_by_risk {
+  background-color: #a13d3d;
+  color: var(--surface-text);
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--surface-text);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.badge-icon {
+  font-weight: 900;
+}
+
+.status-description {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--secondary-blue);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.status-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.status-card li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  border-bottom: 1px solid rgba(11, 27, 43, 0.08);
+  padding-bottom: 0.5rem;
+}
+
+.status-card .k {
+  color: var(--secondary-blue);
+  flex-shrink: 0;
+}
+
+.status-card .v {
+  font-weight: 600;
+  text-align: right;
+  word-break: break-all;
+}
+
+.status-card .v.mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 400;
+  font-size: 0.72rem;
+}
+
+.loading-text {
+  font-family: var(--font-body);
+  color: var(--secondary-blue);
+}
+
+a {
+  color: var(--golden-accent);
+  text-decoration: none;
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-card { animation: none; }
+  .pulse-dot { animation: none; }
+}
