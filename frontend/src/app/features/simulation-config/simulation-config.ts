@@ -4,7 +4,7 @@ import { Asset } from '../../models/asset.model';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Alert } from '../../shared/alert';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { BacktestConfigurationResponse } from '../../models/backtest-configuration-response.model';
 import { AbstractControl, ValidationErrors } from '@angular/forms';
 import { StepIndicator } from '../../shared/step-indicator/step-indicator';
@@ -20,6 +20,7 @@ export class SimulationConfig implements OnInit {
 
   private backtest = inject(Backtest);
   private alert = inject(Alert);
+  private router = inject(Router)
   savedConfig: BacktestConfigurationResponse | null = null;
   assets: Asset[] = [];
   submitted = false;
@@ -27,7 +28,9 @@ export class SimulationConfig implements OnInit {
   simConfigForm = new FormGroup({
     asset: new FormControl('', Validators.required),
     startDate: new FormControl('', Validators.required),
-    endDate: new FormControl('', Validators.required)
+    endDate: new FormControl('', Validators.required),
+    initialCapital: new FormControl<number | null>(null, [Validators.required, Validators.min(1)]),
+    strategy: new FormControl('', Validators.required)
   }, { validators: dateRangeValidator });
 
   ngOnInit(): void {
@@ -44,14 +47,20 @@ export class SimulationConfig implements OnInit {
       return;
     }
 
-    this.backtest.configureBacktest(this.simConfigForm.value.asset ?? '',
+    this.backtest.configureBacktest(
+      this.simConfigForm.value.asset ?? '',
       this.simConfigForm.value.startDate ?? '',
-      this.simConfigForm.value.endDate ?? '').subscribe({
-
-        next: (response) => { this.savedConfig = response;
-          this.alert.showSuccess("Simulation configured succesfully!") },
-        error: (error) => { this.alert.showApiError(error) }
-      })
+      this.simConfigForm.value.endDate ?? '',
+      this.simConfigForm.value.initialCapital ?? 0,
+      this.simConfigForm.value.strategy ?? ''
+    ).subscribe({
+      next: (response) => {
+        this.savedConfig = response;
+        this.router.navigate(['/risk-config', response.id]);
+        this.alert.showSuccess("Simulation configured succesfully!")
+      },
+      error: (error) => { this.alert.showApiError(error) }
+    })
   }
 }
 

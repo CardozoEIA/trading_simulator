@@ -1,0 +1,22 @@
+<div class="simulation-status-container">
+  <h1>Simulation status</h1>
+
+  @if (simulation) {
+    <div class="status-card">
+      <span class="status-badge" [class]="simulation.status.toLowerCase()">
+        {{ simulation.status === 'RUNNING' ? 'In progress' : simulation.status === 'FINISHED' ? 'Finished' : 'Stopped due to risk' }}
+      </span>
+
+      <ul>
+        <li><strong>Simulation ID:</strong> {{ simulation.id }}</li>
+        <li><strong>Configuration ID:</strong> {{ simulation.configuration_id }}</li>
+        <li><strong>Started at:</strong> {{ simulation.started_at }}</li>
+        @if (simulation.finished_at) {
+          <li><strong>Finished at:</strong> {{ simulation.finished_at }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  <a routerLink="/dashboard">Dashboard</a>
+</div>

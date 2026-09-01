@@ -1,0 +1,79 @@
+.simulation-status-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 1.5rem;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+h1 {
+  font-family: var(--font-display);
+  color: var(--surface-text);
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+}
+
+.status-card {
+  background-color: var(--surface-text);
+  color: var(--background-main);
+  padding: 2.5rem;
+  border-radius: 4px;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  border-top: 4px solid;
+  border-image: linear-gradient(to right, var(--golden-accent), var(--secondary-blue)) 1;
+}
+
+.status-badge {
+  align-self: flex-start;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+}
+
+.status-badge.running {
+  background-color: var(--secondary-blue);
+  color: var(--surface-text);
+}
+
+.status-badge.finished {
+  background-color: var(--green-success);
+  color: var(--background-main);
+}
+
+.status-badge.stopped_by_risk {
+  background-color: #a13d3d;
+  color: var(--surface-text);
+}
+
+.status-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+
+.status-card strong {
+  color: var(--secondary-blue);
+}
+
+.simulation-status-container > a {
+  color: var(--golden-accent);
+  text-decoration: none;
+  margin-top: 1.5rem;
+}
+
+.simulation-status-container > a:hover {
+  text-decoration: underline;
+}

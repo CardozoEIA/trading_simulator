@@ -1,0 +1,55 @@
+<div class="risk-config-container">
+  <app-step-indicator
+    [steps]="['Asset & Period', 'Capital & Strategy', 'Risk', 'Confirm']"
+    [currentStep]="3">
+  </app-step-indicator>
+
+  <h1>Risk configuration</h1>
+
+  <form [formGroup]="riskForm" (ngSubmit)="onSubmit()">
+
+    <label for="stopLossPercentage">Stop-loss (%)</label>
+    <input id="stopLossPercentage" type="number" step="0.1" formControlName="stopLossPercentage"
+           [class.invalid]="riskForm.get('stopLossPercentage')?.invalid && submitted">
+    @if (riskForm.get('stopLossPercentage')?.hasError('required') && submitted) {
+      <p class="error-message">Stop-loss is required</p>
+    }
+    @if (riskForm.get('stopLossPercentage')?.hasError('percentageOutOfRange') && submitted) {
+      <p class="error-message">Must be greater than 0 and at most 100</p>
+    }
+
+    <label for="maxPositionSize">Max position size (%)</label>
+    <input id="maxPositionSize" type="number" step="0.1" formControlName="maxPositionSize"
+           [class.invalid]="riskForm.get('maxPositionSize')?.invalid && submitted">
+    @if (riskForm.get('maxPositionSize')?.hasError('required') && submitted) {
+      <p class="error-message">Max position size is required</p>
+    }
+    @if (riskForm.get('maxPositionSize')?.hasError('percentageOutOfRange') && submitted) {
+      <p class="error-message">Must be greater than 0 and at most 100</p>
+    }
+
+    <label for="maxDrawdown">Max drawdown (%)</label>
+    <input id="maxDrawdown" type="number" step="0.1" formControlName="maxDrawdown"
+           [class.invalid]="riskForm.get('maxDrawdown')?.invalid && submitted">
+    @if (riskForm.get('maxDrawdown')?.hasError('required') && submitted) {
+      <p class="error-message">Max drawdown is required</p>
+    }
+    @if (riskForm.get('maxDrawdown')?.hasError('percentageOutOfRange') && submitted) {
+      <p class="error-message">Must be greater than 0 and at most 100</p>
+    }
+
+    <button type="submit">Save risk configuration</button>
+    <a routerLink="/dashboard">Dashboard</a>
+  </form>
+
+  @if (savedRisk) {
+    <div class="saved-config">
+      <h2>Saved risk configuration</h2>
+      <ul>
+        <li><strong>Stop-loss:</strong> {{ savedRisk.stop_loss_percentage }}%</li>
+        <li><strong>Max position size:</strong> {{ savedRisk.max_position_size }}%</li>
+        <li><strong>Max drawdown:</strong> {{ savedRisk.max_drawdown }}%</li>
+      </ul>
+    </div>
+  }
+</div>

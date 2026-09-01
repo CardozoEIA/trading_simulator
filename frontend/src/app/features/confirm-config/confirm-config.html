@@ -1,0 +1,40 @@
+<div class="confirm-config-container">
+  <app-step-indicator
+    [steps]="['Asset & Period', 'Capital & Strategy', 'Risk', 'Confirm']"
+    [currentStep]="4">
+  </app-step-indicator>
+
+  <h1>Review your configuration</h1>
+
+  @if (summary) {
+    <div class="summary-card">
+      <div class="summary-section">
+        <h2>Simulation</h2>
+        <ul>
+          <li><strong>Asset:</strong> {{ summary.asset }}</li>
+          <li><strong>From:</strong> {{ summary.start_date }}</li>
+          <li><strong>To:</strong> {{ summary.end_date }}</li>
+          <li><strong>Initial capital:</strong> ${{ summary.initial_capital }}</li>
+          <li><strong>Strategy:</strong> {{ summary.strategy }}</li>
+        </ul>
+        <a routerLink="/simulation-config">Edit</a>
+      </div>
+
+      <div class="summary-section">
+        <h2>Risk parameters</h2>
+        <ul>
+          <li><strong>Stop-loss:</strong> {{ summary.risk.stop_loss_percentage }}%</li>
+          <li><strong>Max position size:</strong> {{ summary.risk.max_position_size }}%</li>
+          <li><strong>Max drawdown:</strong> {{ summary.risk.max_drawdown }}%</li>
+        </ul>
+        <a [routerLink]="['/risk-config', configurationId]">Edit</a>
+      </div>
+    </div>
+
+    <button (click)="onConfirm()" [disabled]="starting">
+      {{ starting ? 'Starting...' : 'Confirm & start simulation' }}
+    </button>
+  }
+
+  <a routerLink="/dashboard">Dashboard</a>
+</div>

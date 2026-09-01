@@ -1,0 +1,89 @@
+.confirm-config-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 1.5rem;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+h1 {
+  font-family: var(--font-display);
+  color: var(--surface-text);
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+}
+
+.summary-card {
+  background-color: var(--surface-text);
+  color: var(--background-main);
+  padding: 2.5rem;
+  border-radius: 4px;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  border-top: 4px solid;
+  border-image: linear-gradient(to right, var(--golden-accent), var(--secondary-blue)) 1;
+}
+
+.summary-section h2 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  margin: 0 0 0.75rem 0;
+}
+
+.summary-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+}
+
+.summary-section strong {
+  color: var(--secondary-blue);
+}
+
+.summary-section a {
+  font-size: 0.85rem;
+  color: var(--golden-accent);
+  text-decoration: none;
+}
+
+.summary-section a:hover {
+  text-decoration: underline;
+}
+
+button {
+  background-color: var(--golden-accent);
+  color: var(--background-main);
+  border: none;
+  padding: 0.9rem 1.5rem;
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.confirm-config-container > a {
+  color: var(--golden-accent);
+  text-decoration: none;
+  margin-top: 1.5rem;
+}
+
+.confirm-config-container > a:hover {
+  text-decoration: underline;
+}
