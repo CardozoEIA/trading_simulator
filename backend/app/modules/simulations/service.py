@@ -1,5 +1,11 @@
 from fastapi import HTTPException
 
+from app.services.historical_data.processor import process_historical_data
+from app.services.strategy.engine import run_strategy
+from app.services.strategy.strategies.sma import evaluate as sma_evaluate
+from app.services.strategy.schema import DecisionAction
+from datetime import date
+
 from app.core.supabase import supabase
 from app.core.validation import is_valid_uuid
 
@@ -66,10 +72,31 @@ def get_full_configuration(configuration_id: str, user_id: str) -> dict:
         "risk": risk_response.data[0]
     }
 
+STRATEGY_FUNCTIONS = {
+    "SMA": sma_evaluate,
+}
 
 def start_simulation(configuration_id: str, user_id: str) -> dict:
     """Validates the full configuration exists and creates a new simulation run."""
-    get_full_configuration(configuration_id, user_id)
+    simulation_configuration = get_full_configuration(configuration_id, user_id)
+    processed_data = process_historical_data(
+        asset=simulation_configuration["asset"],
+        start_date=date.fromisoformat(simulation_configuration["start_date"]),
+        end_date=date.fromisoformat(simulation_configuration["end_date"])
+    )
+
+
+    strategy_function = STRATEGY_FUNCTIONS[simulation_configuration["strategy"]]
+    decisions = run_strategy(candles=processed_data.candles, strategy_function=strategy_function)
+
+    # NOTE for US-10 / US-11 (portfolio & decision persistence):
+    # `decisions` is a list[Decision] (see app/services/strategy_schema.py),
+    # generated in chronological order but not yet persisted anywhere.
+    # US-11 should persist each Decision (date, action, reason) to a new
+    # table, likely linked to this simulation's id via `saved["id"]` below.
+    # US-10 should convert BUY/SELL decisions into simulated trades and
+    # update portfolio cash/positions, most likely consuming this same
+    # `decisions` list right after the simulation record is created.
 
     simulation_data = {
         "configuration_id": configuration_id,

@@ -1,4 +1,4 @@
-from app.services.historical_data_processor import _is_valid_candle, _detect_gaps
+from app.services.historical_data.processor import _is_valid_candle, _detect_gaps
 
 
 def test_valid_candle_passes():
