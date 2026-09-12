@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 
-from app.core.supabase import supabase
+from app.core.supabase import supabase_admin as supabase
 from app.core.validation import is_valid_uuid
 from app.modules.risk.schema import RiskConfiguration
 

@@ -39,6 +39,9 @@
           <li><span class="k">Finished at</span><span class="v">{{ simulation.finished_at }}</span></li>
         }
       </ul>
+      @if (simulation.status === 'FINISHED') {
+        <a [routerLink]="['/simulation-decisions', simulation.id]">View decisions & trades</a>
+      }
     </div>
   } @else {
     <p class="loading-text">Loading simulation…</p>

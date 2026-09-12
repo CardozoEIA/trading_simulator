@@ -1,7 +1,7 @@
 from datetime import date
 
 from app.core.supabase import supabase
-from app.services.historical_data_schema import Candle, DataGap, ProcessedHistoricalData
+from app.services.historical_data.schema import Candle, DataGap, ProcessedHistoricalData
 
 
 def _fetch_candles(asset: str, start_date: date, end_date: date):

@@ -41,3 +41,7 @@ def load_historical_data(
     )
 
     return len(response.data)
+
+if __name__ == "__main__":
+    total = load_historical_data("2020-01-01", "2026-09-09")
+    print(f"Loaded {total} records")
