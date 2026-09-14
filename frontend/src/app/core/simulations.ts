@@ -5,6 +5,7 @@ import { ConfigurationSummaryResponse } from '../models/configuration-summary-re
 import { SimulationResponse } from '../models/simulation-response.model';
 import { Decision } from '../models/decision.model';
 import { Trade } from '../models/trade.model';
+import { EquityPoint } from '../models/equity-point.model';
 
 
 @Injectable({
@@ -33,4 +34,7 @@ export class Simulations {
   public getTrades(simulationId: string) {
   return this.http.get<Trade[]>(`${this.baseUrl}/simulations/${simulationId}/trades`);
   }
+  public getEquityCurve(simulationId: string) {
+  return this.http.get<EquityPoint[]>(`${this.baseUrl}/simulations/${simulationId}/equity-curve`);
+}
 }

@@ -7,4 +7,5 @@ export interface Decision {
   action: 'BUY' | 'SELL' | 'HOLD';
   reason: string;
   executed: boolean;
+  rejection_reason: string | null;
 }

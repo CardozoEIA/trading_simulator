@@ -10,3 +10,10 @@ class Trade(BaseModel):
     cash_after: float
     shares_after: float
     portfolio_value_after: float
+
+# app/modules/portfolio/schema.py — agregar
+class EquityPoint(BaseModel):
+    date: date_type
+    portfolio_value: float
+    cash: float
+    shares: float

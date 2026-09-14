@@ -5,6 +5,7 @@ import { Simulations } from '../../core/simulations';
 import { Alert } from '../../shared/alert';
 import { Decision } from '../../models/decision.model';
 import { Trade } from '../../models/trade.model';
+import { EquityPoint } from '../../models/equity-point.model';
 import { ConfigurationSummaryResponse } from '../../models/configuration-summary-response.model';
 
 interface RoundTrip {
@@ -30,6 +31,7 @@ export class SimulationDecisions implements OnInit {
   summary: ConfigurationSummaryResponse | null = null;
   decisions: Decision[] = [];
   trades: Trade[] = [];
+  equityCurve: EquityPoint[] = [];
   loading = true;
   showAllDecisions = false;
 
@@ -56,6 +58,11 @@ export class SimulationDecisions implements OnInit {
       next: (response) => { this.trades = response; },
       error: (error) => { this.alert.showApiError(error); }
     });
+
+    this.simulations.getEquityCurve(this.simulationId).subscribe({
+      next: (response) => { this.equityCurve = response; },
+      error: (error) => { this.alert.showApiError(error); }
+    });
   }
 
   get signalDecisions(): Decision[] {
@@ -63,8 +70,13 @@ export class SimulationDecisions implements OnInit {
   }
 
   get finalValue(): number {
-    if (this.trades.length === 0) return this.summary?.initial_capital ?? 0;
-    return this.trades[this.trades.length - 1].portfolio_value_after;
+    if (this.equityCurve.length > 0) {
+      return this.equityCurve[this.equityCurve.length - 1].portfolio_value;
+    }
+    if (this.trades.length > 0) {
+      return this.trades[this.trades.length - 1].portfolio_value_after;
+    }
+    return this.summary?.initial_capital ?? 0;
   }
 
   get totalReturnPct(): number {
@@ -105,5 +117,20 @@ export class SimulationDecisions implements OnInit {
 
   get unexecutedSignals(): number {
     return this.signalDecisions.length - this.trades.length;
+  }
+
+  get chartWidth(): number {
+    return Math.max(this.equityCurve.length * 4, 100);
+  }
+
+  get chartPoints(): string {
+    if (this.equityCurve.length === 0) return '';
+    const values = this.equityCurve.map(e => e.portfolio_value);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const range = max - min || 1;
+    return values
+      .map((v, i) => `${i * 4},${100 - ((v - min) / range) * 100}`)
+      .join(' ');
   }
 }
