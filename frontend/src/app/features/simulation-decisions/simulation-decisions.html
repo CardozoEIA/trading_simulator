@@ -39,13 +39,22 @@
       }
     }
 
+    @if (equityCurve.length > 1) {
+      <div class="mini-chart">
+        <svg [attr.viewBox]="'0 0 ' + chartWidth + ' 100'" preserveAspectRatio="none">
+          <polyline [attr.points]="chartPoints" fill="none" stroke="var(--golden-accent)" stroke-width="2"/>
+        </svg>
+        <p class="chart-caption">Daily portfolio value over the simulated period</p>
+      </div>
+    }
+
     <h2>Trades</h2>
     @if (trades.length === 0) {
       <p class="empty-text">No trades were executed during this simulation.</p>
     } @else {
       <table>
         <thead>
-          <tr><th>Date</th><th>Type</th><th>Price</th><th>Quantity</th><th>Portfolio value</th></tr>
+          <tr><th>Date</th><th>Type</th><th>Price</th><th>Quantity</th><th>Cash after</th><th>Portfolio value</th></tr>
         </thead>
         <tbody>
           @for (t of trades; track t.id) {
@@ -54,6 +63,7 @@
               <td><span class="badge" [class.buy]="t.type === 'BUY'" [class.sell]="t.type === 'SELL'">{{ t.type }}</span></td>
               <td class="mono">${{ t.price | number:'1.2-2' }}</td>
               <td class="mono">{{ t.quantity | number:'1.4-4' }}</td>
+              <td class="mono">${{ t.cash_after | number:'1.2-2' }}</td>
               <td class="mono">${{ t.portfolio_value_after | number:'1.2-2' }}</td>
             </tr>
           }
@@ -69,7 +79,7 @@
     </div>
     <table>
       <thead>
-        <tr><th>Date</th><th>Action</th><th>Price</th><th>Reason</th><th>Executed</th></tr>
+        <tr><th>Date</th><th>Action</th><th>Price</th><th>Reason</th><th>Executed</th><th>Rejection reason</th></tr>
       </thead>
       <tbody>
         @for (d of (showAllDecisions ? decisions : signalDecisions); track d.id) {
@@ -79,6 +89,7 @@
             <td class="mono">${{ d.price | number:'1.2-2' }}</td>
             <td>{{ d.reason }}</td>
             <td>{{ d.executed ? '✓' : '—' }}</td>
+            <td>{{ d.rejection_reason || (d.executed ? '' : 'No open position to sell') }}</td>
           </tr>
         }
       </tbody>

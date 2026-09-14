@@ -4,13 +4,25 @@ from app.core.supabase import supabase_admin as supabase
 from app.core.validation import is_valid_uuid
 from app.services.strategy.schema import Decision
 
-def save_decisions(simulation_id, decisions, executed_dates, prices_by_date) -> None:
+def save_decisions(simulation_id, decisions, executed_dates, prices_by_date, rejections: dict, overrides: dict) -> None:
     if not decisions:
         return
-    rows = [{"simulation_id": simulation_id, "date": d.date.isoformat(),
-             "price": prices_by_date[d.date], "action": d.action.value,
-             "reason": d.reason, "executed": d.date in executed_dates}
-            for d in decisions]
+    rows = []
+    for d in decisions:
+        if d.date in overrides:
+            rows.append({
+                "simulation_id": simulation_id, "date": d.date.isoformat(),
+                "price": prices_by_date[d.date], "action": "SELL",
+                "reason": overrides[d.date], "executed": True,
+                "rejection_reason": None
+            })
+        else:
+            rows.append({
+                "simulation_id": simulation_id, "date": d.date.isoformat(),
+                "price": prices_by_date[d.date], "action": d.action.value,
+                "reason": d.reason, "executed": d.date in executed_dates,
+                "rejection_reason": rejections.get(d.date)
+            })
     try:
         supabase.table("simulation_decisions").insert(rows).execute()
     except Exception:
