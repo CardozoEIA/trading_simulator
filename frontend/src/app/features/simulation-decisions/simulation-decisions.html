@@ -7,7 +7,7 @@
   } @else {
     @if (summary) {
       <div class="hero-return" [class.positive]="totalReturnPct >= 0" [class.negative]="totalReturnPct < 0">
-        <span class="hero-label">{{ summary.asset }} · {{ summary.strategy }}</span>
+        <span class="hero-label">{{ summary.asset }} · {{ summary.strategies.join(', ') }}</span>
         <span class="hero-value">{{ totalReturnPct >= 0 ? '+' : '' }}{{ totalReturnPct | number:'1.2-2' }}%</span>
         <span class="hero-sub">{{ summary.start_date }} → {{ summary.end_date }}</span>
       </div>
