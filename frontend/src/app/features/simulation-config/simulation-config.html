@@ -1,8 +1,10 @@
 <div class="simulation-configuration-container">
     <app-step-indicator
-    [steps]="['Asset, Capital & Strategy', 'Risk', 'Confirm']"
-    [currentStep]="1">
-    </app-step-indicator>    <h1>Simulation configuration</h1>
+        [steps]="['Asset, Capital & Strategy', 'Risk', 'Confirm']"
+        [currentStep]="1">
+    </app-step-indicator>
+
+    <h1>Simulation configuration</h1>
     <form [formGroup]="simConfigForm" (ngSubmit)="onSubmit()">
 
         <label for="asset">Assets</label>
@@ -14,6 +16,13 @@
         </select>
         @if (simConfigForm.get('asset')?.invalid && submitted) {
             <p class="error-message">Please select an asset</p>
+        }
+
+        <label for="initialCapital">Initial capital (USD)</label>
+        <input id="initialCapital" type="number" formControlName="initialCapital"
+               [class.invalid]="simConfigForm.get('initialCapital')?.invalid && submitted">
+        @if (simConfigForm.get('initialCapital')?.invalid && submitted) {
+            <p class="error-message">Enter a valid initial capital</p>
         }
 
         <label for="startDate">Start date</label>
@@ -32,27 +41,24 @@
             <p class="error-message">Start date must be before end date</p>
         }
 
-        <label for="initialCapital">Initial capital (USD)</label>
-        <input id="initialCapital" type="number" formControlName="initialCapital"
-            [class.invalid]="simConfigForm.get('initialCapital')?.invalid && submitted">
-        @if (simConfigForm.get('initialCapital')?.invalid && submitted) {
-            <p class="error-message">Enter a valid initial capital</p>
-        }
-
-        <label for="strategy">Strategy</label>
-        <select id="strategy" formControlName="strategy">
-            <option value="" disabled>Select a strategy</option>
-            <option value="SMA">Simple Moving Average Crossover</option>
-            <option value="RSI">RSI Overbought/Oversold</option>
-            <option value="BOLLINGER">Bollinger Bands Breakout</option>
-        </select>
-        @if (simConfigForm.get('strategy')?.invalid && submitted) {
-            <p class="error-message">Please select a strategy</p>
+        <label>Strategies</label>
+        <p class="field-hint">Select one or more. If several are selected, their signals are combined.</p>
+        <div class="strategy-list" formArrayName="strategies">
+            @for (strategy of strategies; track strategy.code; let i = $index) {
+                <label class="strategy-checkbox">
+                    <input type="checkbox" [formControlName]="i">
+                    <span class="strategy-name">{{ strategy.name }}</span>
+                    <span class="strategy-description">{{ strategy.description }}</span>
+                </label>
+            }
+        </div>
+        @if (strategiesArray.errors?.['noStrategySelected'] && submitted) {
+            <p class="error-message">Select at least one strategy</p>
         }
 
         <button type="submit">Configure simulation</button>
 
-        <a routerLink="/dashboard">Dashboard</a>
+        <button type="button" class="link-style" (click)="onDashboardClick()">Dashboard</button>
     </form>
 
     @if (savedConfig) {
@@ -60,6 +66,8 @@
             <h2>Saved configuration</h2>
             <ul>
             <li><strong>Asset:</strong> {{ savedConfig.asset }}</li>
+            <li><strong>Capital:</strong> ${{ savedConfig.initial_capital }}</li>
+            <li><strong>Strategies:</strong> {{ savedConfig.strategies.join(', ') }}</li>
             <li><strong>From:</strong> {{ savedConfig.start_date }}</li>
             <li><strong>To:</strong> {{ savedConfig.end_date }}</li>
             <li><strong>Available records:</strong> {{ savedConfig.records }}</li>

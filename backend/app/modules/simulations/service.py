@@ -5,6 +5,9 @@ from fastapi import HTTPException
 from app.services.historical_data.processor import process_historical_data
 from app.services.strategy.engine import run_strategy
 from app.services.strategy.strategies.sma import evaluate as sma_evaluate
+from app.services.strategy.strategies.rsi import evaluate as rsi_evaluate
+from app.services.strategy.strategies.bollinger import evaluate as bollinger_evaluate
+from app.services.strategy.strategies.momentum import evaluate as momentum_evaluate
 from app.services.strategy.schema import DecisionAction
 
 from app.core.supabase import supabase_admin as supabase
@@ -46,6 +49,9 @@ def get_full_configuration(configuration_id: str, user_id: str) -> dict:
 
 STRATEGY_FUNCTIONS = {
     "SMA": sma_evaluate,
+    "RSI": rsi_evaluate,
+    "BOLLINGER": bollinger_evaluate,
+    "MOMENTUM": momentum_evaluate,
 }
 
 
@@ -55,11 +61,15 @@ def start_simulation(configuration_id: str, user_id: str) -> dict:
     processed_data = process_historical_data(
         asset=simulation_configuration["asset"],
         start_date=date.fromisoformat(simulation_configuration["start_date"]),
-        end_date=date.fromisoformat(simulation_configuration["end_date"])
+        end_date=date.fromisoformat(simulation_configuration["end_date"]),
     )
 
-    strategy_function = STRATEGY_FUNCTIONS[simulation_configuration["strategy"]]
-    decisions = run_strategy(candles=processed_data.candles, strategy_function=strategy_function)
+    selected_functions = [
+        STRATEGY_FUNCTIONS[s] for s in simulation_configuration["strategies"]
+    ]
+    decisions = run_strategy(
+        candles=processed_data.candles, strategy_functions=selected_functions
+    )
 
     prices_by_date = {c.date: c.close for c in processed_data.candles}
 
@@ -72,7 +82,7 @@ def start_simulation(configuration_id: str, user_id: str) -> dict:
     simulation_data = {
         "configuration_id": configuration_id,
         "user_id": user_id,
-        "status": "RUNNING"
+        "status": "RUNNING",
     }
 
     try:

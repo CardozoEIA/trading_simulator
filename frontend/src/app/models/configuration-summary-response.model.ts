@@ -10,6 +10,6 @@ export interface ConfigurationSummaryResponse {
   start_date: string;
   end_date: string;
   initial_capital: number;
-  strategy: string;
+  strategies: string[];
   risk: RiskSummary;
 }

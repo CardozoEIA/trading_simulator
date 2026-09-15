@@ -52,4 +52,11 @@ export class ConfirmConfig implements OnInit {
       }
     });
   }
+
+  async onDashboardClick() {
+    const confirmed = await this.alert.confirmLeaveWizard();
+    if (confirmed) {
+      this.router.navigate(['/dashboard']);
+    }
+  }
 }

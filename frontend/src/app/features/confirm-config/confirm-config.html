@@ -19,7 +19,7 @@
           <li><span class="k">Asset</span><span class="v">{{ summary.asset }}</span></li>
           <li><span class="k">Period</span><span class="v">{{ summary.start_date }} → {{ summary.end_date }}</span></li>
           <li><span class="k">Initial capital</span><span class="v">${{ summary.initial_capital }}</span></li>
-          <li><span class="k">Strategy</span><span class="v">{{ summary.strategy }}</span></li>
+          <li><span class="k">Strategies</span><span class="v">{{ summary.strategies.join(', ') }}</span></li>
         </ul>
         <a routerLink="/simulation-config">Edit this step</a>
       </div>
@@ -45,5 +45,5 @@
     <p class="loading-text">Loading your configuration…</p>
   }
 
-  <a routerLink="/dashboard" class="back-link">Back to dashboard</a>
+  <button type="button" class="link-style back-link" (click)="onDashboardClick()">Back to dashboard</button>
 </div>

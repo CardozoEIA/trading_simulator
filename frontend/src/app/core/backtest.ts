@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Asset } from '../models/asset.model';
+import { Strategy } from '../models/strategy.model';
 import { BacktestConfigurationResponse } from '../models/backtest-configuration-response.model';
 import { environment } from '../../environments/environment';
 
@@ -16,13 +17,17 @@ export class Backtest {
     return this.http.get<Asset[]>(`${this.baseUrl}/backtest/assets`)
   }
 
-  public configureBacktest(asset: string, startDate: string, endDate: string, initialCapital: number, strategy: string){
+  public getStrategies(){
+    return this.http.get<Strategy[]>(`${this.baseUrl}/backtest/strategies`)
+  }
+
+  public configureBacktest(asset: string, startDate: string, endDate: string, initialCapital: number, strategies: string[]){
     return this.http.post<BacktestConfigurationResponse>(`${this.baseUrl}/backtest/configuration`, {
       asset: asset,
       start_date: startDate,
       end_date: endDate,
       initial_capital: initialCapital,
-      strategy: strategy
+      strategies: strategies
     })
-}
+  }
 }
