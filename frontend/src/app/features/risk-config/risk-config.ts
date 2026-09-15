@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Risk } from '../../core/risk';
 import { Alert } from '../../shared/alert';
@@ -18,7 +18,7 @@ function percentageValidator(control: AbstractControl): ValidationErrors | null 
 
 @Component({
   selector: 'app-risk-config',
-  imports: [ReactiveFormsModule, RouterLink, StepIndicator],
+  imports: [ReactiveFormsModule, StepIndicator],
   templateUrl: './risk-config.html',
   styleUrl: './risk-config.css',
 })
