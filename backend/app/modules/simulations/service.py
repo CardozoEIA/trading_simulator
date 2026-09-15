@@ -3,6 +3,9 @@ from fastapi import HTTPException
 from app.services.historical_data.processor import process_historical_data
 from app.services.strategy.engine import run_strategy
 from app.services.strategy.strategies.sma import evaluate as sma_evaluate
+from app.services.strategy.strategies.rsi import evaluate as rsi_evaluate
+from app.services.strategy.strategies.bollinger import evaluate as bollinger_evaluate
+from app.services.strategy.strategies.momentum import evaluate as momentum_evaluate
 from app.services.strategy.schema import DecisionAction
 from datetime import date
 
@@ -20,13 +23,12 @@ def get_full_configuration(configuration_id: str, user_id: str) -> dict:
     if not is_valid_uuid(configuration_id):
         raise HTTPException(
             status_code=404,
-            detail="The referenced simulation configuration was not found"
+            detail="The referenced simulation configuration was not found",
         )
 
     try:
         config_response = (
-            supabase
-            .table("backtest_configurations")
+            supabase.table("backtest_configurations")
             .select("*")
             .eq("id", configuration_id)
             .eq("user_id", user_id)
@@ -36,19 +38,18 @@ def get_full_configuration(configuration_id: str, user_id: str) -> dict:
     except Exception:
         raise HTTPException(
             status_code=503,
-            detail="Could not connect to the database, please try again"
+            detail="Could not connect to the database, please try again",
         )
 
     if not config_response.data:
         raise HTTPException(
             status_code=404,
-            detail="The referenced simulation configuration was not found"
+            detail="The referenced simulation configuration was not found",
         )
 
     try:
         risk_response = (
-            supabase
-            .table("risk_configurations")
+            supabase.table("risk_configurations")
             .select("*")
             .eq("configuration_id", configuration_id)
             .eq("user_id", user_id)
@@ -58,23 +59,25 @@ def get_full_configuration(configuration_id: str, user_id: str) -> dict:
     except Exception:
         raise HTTPException(
             status_code=503,
-            detail="Could not connect to the database, please try again"
+            detail="Could not connect to the database, please try again",
         )
 
     if not risk_response.data:
         raise HTTPException(
             status_code=400,
-            detail="Risk parameters must be configured before starting the simulation"
+            detail="Risk parameters must be configured before starting the simulation",
         )
 
-    return {
-        **config_response.data[0],
-        "risk": risk_response.data[0]
-    }
+    return {**config_response.data[0], "risk": risk_response.data[0]}
+
 
 STRATEGY_FUNCTIONS = {
     "SMA": sma_evaluate,
+    "RSI": rsi_evaluate,
+    "BOLLINGER": bollinger_evaluate,
+    "MOMENTUM": momentum_evaluate,
 }
+
 
 def start_simulation(configuration_id: str, user_id: str) -> dict:
     """Validates the full configuration exists and creates a new simulation run."""
@@ -82,15 +85,14 @@ def start_simulation(configuration_id: str, user_id: str) -> dict:
     processed_data = process_historical_data(
         asset=simulation_configuration["asset"],
         start_date=date.fromisoformat(simulation_configuration["start_date"]),
-        end_date=date.fromisoformat(simulation_configuration["end_date"])
+        end_date=date.fromisoformat(simulation_configuration["end_date"]),
     )
 
-
-    strategy_function = STRATEGY_FUNCTIONS[simulation_configuration["strategy"]]
-    decisions = run_strategy(candles=processed_data.candles, strategy_function=strategy_function)
+    selected_functions = [STRATEGY_FUNCTIONS[s] for s in simulation_configuration["strategies"]]
+    decisions = run_strategy(candles=processed_data.candles, strategy_functions=selected_functions)
 
     # NOTE for US-10 / US-11 (portfolio & decision persistence):
-    # `decisions` is a list[Decision] (see app/services/strategy_schema.py),
+    # `decisions` is a list[Decision] (see app/services/strategy/schema.py),
     # generated in chronological order but not yet persisted anywhere.
     # US-11 should persist each Decision (date, action, reason) to a new
     # table, likely linked to this simulation's id via `saved["id"]` below.
@@ -101,42 +103,30 @@ def start_simulation(configuration_id: str, user_id: str) -> dict:
     simulation_data = {
         "configuration_id": configuration_id,
         "user_id": user_id,
-        "status": "RUNNING"
+        "status": "RUNNING",
     }
 
     try:
-        saved = (
-            supabase
-            .table("simulations")
-            .insert(simulation_data)
-            .execute()
-        )
+        saved = supabase.table("simulations").insert(simulation_data).execute()
     except Exception:
         raise HTTPException(
             status_code=503,
-            detail="Could not connect to the database, please try again"
+            detail="Could not connect to the database, please try again",
         )
 
     if not saved.data:
-        raise HTTPException(
-            status_code=500,
-            detail="Could not start the simulation"
-        )
+        raise HTTPException(status_code=500, detail="Could not start the simulation")
 
     return saved.data[0]
 
 
 def get_simulation_status(simulation_id: str, user_id: str) -> dict:
     if not is_valid_uuid(simulation_id):
-        raise HTTPException(
-            status_code=404,
-            detail="Simulation not found"
-        )
+        raise HTTPException(status_code=404, detail="Simulation not found")
 
     try:
         response = (
-            supabase
-            .table("simulations")
+            supabase.table("simulations")
             .select("*")
             .eq("id", simulation_id)
             .eq("user_id", user_id)
@@ -146,13 +136,10 @@ def get_simulation_status(simulation_id: str, user_id: str) -> dict:
     except Exception:
         raise HTTPException(
             status_code=503,
-            detail="Could not connect to the database, please try again"
+            detail="Could not connect to the database, please try again",
         )
 
     if not response.data:
-        raise HTTPException(
-            status_code=404,
-            detail="Simulation not found"
-        )
+        raise HTTPException(status_code=404, detail="Simulation not found")
 
     return response.data[0]

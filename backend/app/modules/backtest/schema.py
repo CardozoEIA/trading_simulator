@@ -8,6 +8,7 @@ class StrategyType(str, Enum):
     SMA = "SMA"
     RSI = "RSI"
     BOLLINGER = "BOLLINGER"
+    MOMENTUM = "MOMENTUM"
 
 
 class BacktestConfiguration(BaseModel):
@@ -15,7 +16,7 @@ class BacktestConfiguration(BaseModel):
     start_date: date
     end_date: date
     initial_capital: float
-    strategy: StrategyType
+    strategies: list[StrategyType]
 
 
 class BacktestConfigurationResponse(BaseModel):
@@ -24,6 +25,6 @@ class BacktestConfigurationResponse(BaseModel):
     start_date: date
     end_date: date
     initial_capital: float
-    strategy: str
+    strategies: list[str]
     data_available: bool
     records: int

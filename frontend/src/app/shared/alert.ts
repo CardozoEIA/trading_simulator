@@ -63,4 +63,8 @@ export class Alert {
   public showApiError(error: unknown): void {
     this.showError(this.extractErrorMessage(error));
   }
+
+  public confirmLeaveWizard(): Promise<boolean> {
+    return this.confirm('You will lose your progress on this step if you leave now. Continue?');
+  }
 }

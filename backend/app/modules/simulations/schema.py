@@ -21,6 +21,7 @@ class SimulationResponse(BaseModel):
     started_at: datetime
     finished_at: datetime | None = None
 
+
 class RiskSummary(BaseModel):
     stop_loss_percentage: float
     max_position_size: float
@@ -33,5 +34,5 @@ class ConfigurationSummaryResponse(BaseModel):
     start_date: date
     end_date: date
     initial_capital: float
-    strategy: str
+    strategies: list[str]  # <-- corregido
     risk: RiskSummary

@@ -4,7 +4,6 @@ from app.core.supabase import supabase
 from app.modules.backtest.schema import BacktestConfiguration
 
 
-
 AVAILABLE_ASSETS = {
     "SP500": "S&P 500"
 }
@@ -33,6 +32,15 @@ AVAILABLE_STRATEGIES = {
             "the price touches the lower band and sells when it touches "
             "the upper band, betting that prices tend to return to their "
             "average."
+        )
+    },
+    "MOMENTUM": {
+        "name": "Momentum",
+        "description": (
+            "Compares the current price against its price from several "
+            "days ago. It buys when the price has been climbing steadily "
+            "and sells when it has been falling, betting that a moving "
+            "market keeps moving in the same direction."
         )
     }
 }
@@ -66,6 +74,19 @@ def validate_configuration(configuration: BacktestConfiguration) -> int:
             status_code=400,
             detail="The selected asset is not available"
         )
+
+    if not configuration.strategies:
+        raise HTTPException(
+            status_code=400,
+            detail="At least one strategy must be selected"
+        )
+
+    for strategy in configuration.strategies:
+        if strategy.value not in AVAILABLE_STRATEGIES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Strategy {strategy.value} is not available"
+            )
 
     try:
         response = (
@@ -101,7 +122,7 @@ def save_configuration(configuration: BacktestConfiguration, user_id: str, recor
         "start_date": configuration.start_date.isoformat(),
         "end_date": configuration.end_date.isoformat(),
         "initial_capital": configuration.initial_capital,
-        "strategy": configuration.strategy.value
+        "strategies": [s.value for s in configuration.strategies]
     }
 
     try:
@@ -131,7 +152,7 @@ def save_configuration(configuration: BacktestConfiguration, user_id: str, recor
         "start_date": saved["start_date"],
         "end_date": saved["end_date"],
         "initial_capital": saved["initial_capital"],
-        "strategy": saved["strategy"],
+        "strategies": saved["strategies"],
         "data_available": True,
         "records": records
     }

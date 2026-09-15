@@ -59,7 +59,7 @@
     </div>
 
     <button type="submit">Save risk configuration</button>
-    <a routerLink="/dashboard">Back to dashboard</a>
+    <button type="button" class="link-style" (click)="onDashboardClick()">Back to dashboard</button>
   </form>
 
   @if (savedRisk) {

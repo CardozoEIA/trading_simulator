@@ -11,6 +11,12 @@ from app.modules.backtest.service import (
     validate_configuration,
     save_configuration
 )
+from app.modules.backtest.service import (
+    get_available_assets,
+    get_available_strategies,
+    validate_configuration,
+    save_configuration
+)
 
 
 router = APIRouter(
@@ -43,3 +49,9 @@ def configure_backtest(
 ):
     records = validate_configuration(configuration)
     return save_configuration(configuration, current_user.id, records)
+
+@router.get("/strategies")
+def get_strategies(
+    current_user=Depends(get_current_user)
+):
+    return get_available_strategies()

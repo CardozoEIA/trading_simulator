@@ -1,4 +1,4 @@
-from app.services.strategy.schema import Decision, DecisionAction
+from app.services.strategy.schema import DecisionAction, StrategySignal
 
 SHORT_PERIOD = 5
 LONG_PERIOD = 20
@@ -12,11 +12,9 @@ def _calculate_sma(candles: list, current_index: int, period: int) -> float | No
     return sum(close_values) / len(close_values)
 
 
-def evaluate(candles: list, current_index: int) -> Decision:
-    today_date = candles[current_index].date
-
+def evaluate(candles: list, current_index: int) -> StrategySignal:
     if current_index == 0:
-        return Decision(date=today_date, action=DecisionAction.HOLD, reason="Not enough data yet")
+        return StrategySignal(direction=DecisionAction.HOLD, score=0.0, reasoning="Not enough data yet")
 
     short_today = _calculate_sma(candles=candles, current_index=current_index, period=SHORT_PERIOD)
     long_today = _calculate_sma(candles=candles, current_index=current_index, period=LONG_PERIOD)
@@ -24,12 +22,17 @@ def evaluate(candles: list, current_index: int) -> Decision:
     long_yesterday = _calculate_sma(candles=candles, current_index=current_index - 1, period=LONG_PERIOD)
 
     if any(value is None for value in [short_today, long_today, short_yesterday, long_yesterday]):
-        return Decision(date=today_date, action=DecisionAction.HOLD, reason="Not enough data yet")
+        return StrategySignal(direction=DecisionAction.HOLD, score=0.0, reasoning="Not enough data yet")
+
+    # Score formula: normalized distance between the two SMAs relative to the long SMA,
+    # clamped to [-1, 1]. A wider gap between short and long SMA means a stronger signal.
+    gap_ratio = (short_today - long_today) / long_today
+    score = max(-1.0, min(1.0, gap_ratio * 10))
 
     if short_yesterday <= long_yesterday and short_today > long_today:
-        return Decision(date=today_date, action=DecisionAction.BUY, reason="Short SMA crossed above long SMA")
+        return StrategySignal(direction=DecisionAction.BUY, score=abs(score), reasoning=f"Short SMA crossed above long SMA (gap={gap_ratio:.4f})")
 
     if short_yesterday >= long_yesterday and short_today < long_today:
-        return Decision(date=today_date, action=DecisionAction.SELL, reason="Short SMA crossed below long SMA")
+        return StrategySignal(direction=DecisionAction.SELL, score=-abs(score), reasoning=f"Short SMA crossed below long SMA (gap={gap_ratio:.4f})")
 
-    return Decision(date=today_date, action=DecisionAction.HOLD, reason="No crossover detected")
+    return StrategySignal(direction=DecisionAction.HOLD, score=score, reasoning="No crossover detected")

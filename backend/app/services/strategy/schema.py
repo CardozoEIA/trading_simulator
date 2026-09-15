@@ -10,6 +10,12 @@ class DecisionAction(str, Enum):
     HOLD = "HOLD"
 
 
+class StrategySignal(BaseModel):
+    direction: DecisionAction
+    score: float  # -1.0 (strong SELL) to +1.0 (strong BUY)
+    reasoning: str
+
+
 class Decision(BaseModel):
     date: date
     action: DecisionAction
