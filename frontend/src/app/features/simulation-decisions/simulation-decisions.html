@@ -1,0 +1,89 @@
+<div class="results-container">
+  <span class="section-tag">SIMULATION RESULTS</span>
+  <h1>How your strategy performed</h1>
+
+  @if (loading) {
+    <p class="loading-text">Loading results…</p>
+  } @else {
+    @if (summary) {
+      <div class="hero-return" [class.positive]="totalReturnPct >= 0" [class.negative]="totalReturnPct < 0">
+        <span class="hero-label">{{ summary.asset }} · {{ summary.strategy }}</span>
+        <span class="hero-value">{{ totalReturnPct >= 0 ? '+' : '' }}{{ totalReturnPct | number:'1.2-2' }}%</span>
+        <span class="hero-sub">{{ summary.start_date }} → {{ summary.end_date }}</span>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <span class="stat-label">Initial capital</span>
+          <span class="stat-value">${{ summary.initial_capital | number:'1.2-2' }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Final value</span>
+          <span class="stat-value">${{ finalValue | number:'1.2-2' }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Trades executed</span>
+          <span class="stat-value">{{ trades.length }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Win rate</span>
+          <span class="stat-value">{{ roundTrips.length ? (winRate | number:'1.0-0') + '%' : '—' }}</span>
+        </div>
+      </div>
+
+      @if (isOpenPosition) {
+        <p class="note">Position still open at the end of the period — the last BUY has no matching SELL yet.</p>
+      }
+      @if (unexecutedSignals > 0) {
+        <p class="note">{{ unexecutedSignals }} strategy signal(s) could not be executed (e.g. a SELL signal with no open position).</p>
+      }
+    }
+
+    <h2>Trades</h2>
+    @if (trades.length === 0) {
+      <p class="empty-text">No trades were executed during this simulation.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Type</th><th>Price</th><th>Quantity</th><th>Portfolio value</th></tr>
+        </thead>
+        <tbody>
+          @for (t of trades; track t.id) {
+            <tr>
+              <td class="mono">{{ t.date }}</td>
+              <td><span class="badge" [class.buy]="t.type === 'BUY'" [class.sell]="t.type === 'SELL'">{{ t.type }}</span></td>
+              <td class="mono">${{ t.price | number:'1.2-2' }}</td>
+              <td class="mono">{{ t.quantity | number:'1.4-4' }}</td>
+              <td class="mono">${{ t.portfolio_value_after | number:'1.2-2' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    <div class="section-header">
+      <h2>Strategy signals</h2>
+      <button class="toggle-btn" (click)="showAllDecisions = !showAllDecisions">
+        {{ showAllDecisions ? 'Show BUY/SELL only' : 'Show all (incl. HOLD)' }}
+      </button>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Action</th><th>Price</th><th>Reason</th><th>Executed</th></tr>
+      </thead>
+      <tbody>
+        @for (d of (showAllDecisions ? decisions : signalDecisions); track d.id) {
+          <tr>
+            <td class="mono">{{ d.date }}</td>
+            <td><span class="badge" [class.buy]="d.action === 'BUY'" [class.sell]="d.action === 'SELL'" [class.hold]="d.action === 'HOLD'">{{ d.action }}</span></td>
+            <td class="mono">${{ d.price | number:'1.2-2' }}</td>
+            <td>{{ d.reason }}</td>
+            <td>{{ d.executed ? '✓' : '—' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  <a routerLink="/dashboard">Back to dashboard</a>
+</div>

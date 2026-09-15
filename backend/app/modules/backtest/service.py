@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 
-from app.core.supabase import supabase
+from app.core.supabase import supabase_admin as supabase
 from app.modules.backtest.schema import BacktestConfiguration
 
 
@@ -99,7 +99,8 @@ def validate_configuration(configuration: BacktestConfiguration) -> int:
             .limit(1)
             .execute()
         )
-    except Exception:
+    except Exception as e:
+        print("ERROR REAL en validate_configuration:", repr(e))
         raise HTTPException(
             status_code=503,
             detail="Could not connect to the database, please try again"
@@ -132,7 +133,8 @@ def save_configuration(configuration: BacktestConfiguration, user_id: str, recor
             .insert(configuration_data)
             .execute()
         )
-    except Exception:
+    except Exception as e:
+        print("ERROR REAL en validate_configuration:", repr(e))
         raise HTTPException(
             status_code=503,
             detail="Could not connect to the database, please try again"
