@@ -79,7 +79,10 @@
     </div>
     <table>
       <thead>
-        <tr><th>Date</th><th>Action</th><th>Price</th><th>Reason</th><th>Executed</th><th>Rejection reason</th></tr>
+        <tr>
+          <th>Date</th><th>Action</th><th>Price</th><th>Reason</th><th>Executed</th>
+          <th>RSI</th><th>SMA short</th><th>SMA long</th><th>Rejection reason</th>
+        </tr>
       </thead>
       <tbody>
         @for (d of (showAllDecisions ? decisions : signalDecisions); track d.id) {
@@ -89,7 +92,10 @@
             <td class="mono">${{ d.price | number:'1.2-2' }}</td>
             <td>{{ d.reason }}</td>
             <td>{{ d.executed ? '✓' : '—' }}</td>
-            <td>{{ d.rejection_reason || (d.executed ? '' : 'No open position to sell') }}</td>
+            <td class="mono">{{ getSignalForDate(d.date)?.rsi | number:'1.1-1' }}</td>
+            <td class="mono">{{ getSignalForDate(d.date)?.sma_short | number:'1.2-2' }}</td>
+            <td class="mono">{{ getSignalForDate(d.date)?.sma_long | number:'1.2-2' }}</td>
+            <td>{{ getUnexecutedReason(d) }}</td>
           </tr>
         }
       </tbody>

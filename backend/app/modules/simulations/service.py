@@ -15,6 +15,8 @@ from app.core.validation import is_valid_uuid
 from app.modules.portfolio.service import run_portfolio, save_trades, save_equity_curve
 from app.modules.decisions.service import save_decisions
 from app.modules.risk.manager import RiskManager
+from app.services.indicators.calculator import calculate_all
+from app.modules.signals.service import save_signals
 
 
 def get_full_configuration(configuration_id: str, user_id: str) -> dict:
@@ -70,6 +72,7 @@ def start_simulation(configuration_id: str, user_id: str) -> dict:
     decisions = run_strategy(
         candles=processed_data.candles, strategy_functions=selected_functions
     )
+    signal_snapshots = calculate_all(processed_data.candles)
 
     prices_by_date = {c.date: c.close for c in processed_data.candles}
 
@@ -108,6 +111,7 @@ def start_simulation(configuration_id: str, user_id: str) -> dict:
     save_decisions(simulation_id, decisions, executed_dates, prices_by_date, rejections, overrides)
     save_trades(simulation_id, trades)
     save_equity_curve(simulation_id, equity_curve)
+    save_signals(simulation_id, signal_snapshots)
 
     try:
         updated = (
