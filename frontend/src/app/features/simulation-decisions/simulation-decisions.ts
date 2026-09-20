@@ -6,6 +6,7 @@ import { Alert } from '../../shared/alert';
 import { Decision } from '../../models/decision.model';
 import { Trade } from '../../models/trade.model';
 import { EquityPoint } from '../../models/equity-point.model';
+import { Signal } from '../../models/signal.model';
 import { ConfigurationSummaryResponse } from '../../models/configuration-summary-response.model';
 
 interface RoundTrip {
@@ -32,6 +33,7 @@ export class SimulationDecisions implements OnInit {
   decisions: Decision[] = [];
   trades: Trade[] = [];
   equityCurve: EquityPoint[] = [];
+  signals: Signal[] = [];
   loading = true;
   showAllDecisions = false;
 
@@ -61,6 +63,11 @@ export class SimulationDecisions implements OnInit {
 
     this.simulations.getEquityCurve(this.simulationId).subscribe({
       next: (response) => { this.equityCurve = response; },
+      error: (error) => { this.alert.showApiError(error); }
+    });
+
+    this.simulations.getSignals(this.simulationId).subscribe({
+      next: (response) => { this.signals = response; },
       error: (error) => { this.alert.showApiError(error); }
     });
   }
@@ -132,5 +139,15 @@ export class SimulationDecisions implements OnInit {
     return values
       .map((v, i) => `${i * 4},${100 - ((v - min) / range) * 100}`)
       .join(' ');
+  }
+  
+
+  getSignalForDate(date: string): Signal | undefined {
+    return this.signals.find(s => s.date === date);
+  }
+  getUnexecutedReason(d: Decision): string {
+    if (d.rejection_reason) return d.rejection_reason;
+    if (d.executed) return '';
+    return d.action === 'BUY' ? 'Already fully invested — no cash available' : 'No open position to sell';
   }
 }
