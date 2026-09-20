@@ -9,6 +9,7 @@ from app.modules.simulations.routes import router as simulations_router
 from app.modules.portfolio.routes import router as portfolio_router
 from app.modules.decisions.routes import router as decisions_router
 from app.modules.signals.routes import router as signals_router
+from app.modules.agent.routes import router as agent_router
 
 app = FastAPI(
     title="Market Navigator AI API"
@@ -37,3 +38,4 @@ app.include_router(simulations_router)
 app.include_router(portfolio_router)
 app.include_router(decisions_router)
 app.include_router(signals_router)
+app.include_router(agent_router)
