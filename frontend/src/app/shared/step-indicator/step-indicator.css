@@ -1,7 +1,11 @@
+:host {
+  margin-top: 2.5rem;
+}
+
 .step-indicator {
   display: flex;
   align-items: center;
-  margin-bottom: 3rem;
+  margin-bottom: 0.25rem;
 }
 
 .step {
