@@ -190,3 +190,77 @@ a:hover { text-decoration: underline; }
   font-size: 0.8rem;
   color: var(--secondary-blue);
 }
+
+.explain-btn {
+  background: none;
+  border: 1px solid var(--golden-accent);
+  color: var(--golden-accent);
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.explain-btn:hover {
+  background-color: var(--golden-accent);
+  color: var(--background-main);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 27, 43, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 1000;
+}
+.modal-card {
+  background-color: var(--surface-text);
+  color: var(--background-main);
+  border-radius: 6px;
+  max-width: 520px;
+  width: 100%;
+  border-top: 4px solid var(--golden-accent);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(11, 27, 43, 0.1);
+}
+.modal-header h3 {
+  font-family: var(--font-display);
+  margin: 0;
+  font-size: 1.2rem;
+}
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--secondary-blue);
+}
+.modal-body {
+  padding: 1.5rem;
+}
+.explanation-text {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  white-space: pre-line;
+  margin: 0 0 1rem 0;
+}
+.disclaimer {
+  font-size: 0.72rem;
+  color: var(--secondary-blue);
+  margin: 0;
+  font-style: italic;
+}
+.error-text {
+  font-size: 0.88rem;
+  color: #a13d3d;
+  margin: 0 0 1rem 0;
+}

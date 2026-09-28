@@ -154,4 +154,40 @@ export class SimulationDecisions implements OnInit {
     if (d.executed) return '';
     return d.action === 'BUY' ? 'Already fully invested — no cash available' : 'No open position to sell';
   }
+    // --- Agent explanation modal (US-20) ---
+  explanationOpen = false;
+  explanationDate: string | null = null;
+  explanationText = '';
+  explanationLoading = false;
+  explanationError = '';
+
+  openExplanation(date: string): void {
+    if (!this.simulationId) return;
+    this.explanationOpen = true;
+    this.explanationDate = date;
+    this.explanationText = '';
+    this.explanationError = '';
+    this.explanationLoading = true;
+
+    this.simulations.explainDecision(this.simulationId, date).subscribe({
+      next: (response) => {
+        this.explanationText = response.explanation;
+        this.explanationLoading = false;
+      },
+      error: (error) => {
+        this.explanationError =
+          error?.error?.detail ||
+          'Could not generate the explanation. Please try again.';
+        this.explanationLoading = false;
+      }
+    });
+  }
+
+  closeExplanation(): void {
+    this.explanationOpen = false;
+    this.explanationDate = null;
+    this.explanationText = '';
+    this.explanationError = '';
+    this.explanationLoading = false;
+  }
 }

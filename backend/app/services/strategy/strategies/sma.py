@@ -35,4 +35,11 @@ def evaluate(candles: list, current_index: int) -> StrategySignal:
     if short_yesterday >= long_yesterday and short_today < long_today:
         return StrategySignal(direction=DecisionAction.SELL, score=-abs(score), reasoning=f"Short SMA crossed below long SMA (gap={gap_ratio:.4f})")
 
-    return StrategySignal(direction=DecisionAction.HOLD, score=score, reasoning="No crossover detected")
+    if short_today > long_today:
+        position = f"Short SMA {gap_ratio:.2%} above long SMA (uptrend, no new crossover)"
+    elif short_today < long_today:
+        position = f"Short SMA {abs(gap_ratio):.2%} below long SMA (downtrend, no new crossover)"
+    else:
+        position = "Short and long SMA are equal"
+
+    return StrategySignal(direction=DecisionAction.HOLD, score=score, reasoning=position)
