@@ -6,4 +6,5 @@ export interface SimulationResponse {
   status: SimulationStatus;
   started_at: string;
   finished_at: string | null;
+  stop_reason: string | null;
 }

@@ -98,16 +98,20 @@ def start_simulation(configuration_id: str, user_id: str) -> dict:
 
     simulation_id = saved.data[0]["id"]
 
-    # CAMBIO 1: ahora se desempaquetan 4 valores, no 3 (se agrega `overrides`)
-    trades, equity_curve, rejections, overrides = run_portfolio(
+    trades, equity_curve, rejections, overrides, stop_reason = run_portfolio(
         candles=processed_data.candles,
         decisions=decisions,
         initial_capital=simulation_configuration["initial_capital"],
         risk_manager=risk_manager
     )
+    
+    processed_days = len(equity_curve)
+    
+    decisions = decisions[:processed_days]
+    signal_snapshots = signal_snapshots[:processed_days]
+    
     executed_dates = {t.date for t in trades}
 
-    # CAMBIO 2: se pasa `overrides` como sexto argumento
     save_decisions(simulation_id, decisions, executed_dates, prices_by_date, rejections, overrides)
     save_trades(simulation_id, trades)
     save_equity_curve(simulation_id, equity_curve)
@@ -116,7 +120,11 @@ def start_simulation(configuration_id: str, user_id: str) -> dict:
     try:
         updated = (
             supabase.table("simulations")
-            .update({"status": "FINISHED", "finished_at": datetime.now(timezone.utc).isoformat()})
+            .update({
+                "status": "STOPPED_BY_RISK" if stop_reason else "FINISHED",
+                "stop_reason": stop_reason,
+                "finished_at": datetime.now(timezone.utc).isoformat()
+                })
             .eq("id", simulation_id).execute()
         )
     except Exception:

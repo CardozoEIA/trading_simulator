@@ -19,3 +19,6 @@ class RiskManager:
             return False
         loss_pct = (price - self.entry_price) / self.entry_price
         return loss_pct <= -self.stop_loss_pct
+    
+    def should_stop_simulation(self, portfolio_value: float) -> bool:
+        return self.current_drawdown(portfolio_value) >= self.max_drawdown_pct

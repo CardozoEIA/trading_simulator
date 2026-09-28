@@ -63,12 +63,13 @@ class Portfolio:
         return trade, None, None
 
 
-def run_portfolio(candles: list, decisions: list[Decision], initial_capital: float, risk_manager=None) -> tuple[list[Trade], list[EquityPoint], dict, dict]:
+def run_portfolio(candles: list, decisions: list[Decision], initial_capital: float, risk_manager=None) -> tuple[list[Trade], list[EquityPoint], dict, dict, str | None]:
     portfolio = Portfolio(initial_capital=initial_capital)
     trades = []
     equity_curve = []
     rejections = {}
     overrides = {}
+    stop_justification = None
 
     for candle, decision in zip(candles, decisions):
         trade, rejection_reason, override_reason = portfolio.apply_decision(decision, price=candle.close, risk_manager=risk_manager)
@@ -79,12 +80,17 @@ def run_portfolio(candles: list, decisions: list[Decision], initial_capital: flo
         if override_reason:
             overrides[candle.date] = override_reason
 
+        current_value = portfolio.value(candle.close)
+        
         equity_curve.append(EquityPoint(
-            date=candle.date, portfolio_value=portfolio.value(candle.close),
+            date=candle.date, portfolio_value=current_value,
             cash=portfolio.cash, shares=portfolio.shares
         ))
+        if risk_manager and risk_manager.should_stop_simulation(current_value):
+            stop_justification = f"Maximum drawdown of {risk_manager.max_drawdown_pct:.1%} reached"
+            break
 
-    return trades, equity_curve, rejections, overrides
+    return trades, equity_curve, rejections, overrides, stop_justification
 
 
 def save_trades(simulation_id: str, trades: list[Trade]) -> None:

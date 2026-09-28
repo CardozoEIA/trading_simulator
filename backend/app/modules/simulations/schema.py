@@ -20,6 +20,7 @@ class SimulationResponse(BaseModel):
     status: SimulationStatus
     started_at: datetime
     finished_at: datetime | None = None
+    stop_reason: str | None = None
 
 
 class RiskSummary(BaseModel):
