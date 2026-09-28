@@ -42,4 +42,10 @@ export class Simulations {
   public getSignals(simulationId: string) {
     return this.http.get<Signal[]>(`${this.baseUrl}/simulations/${simulationId}/signals`);
   }
+  public explainDecision(simulationId: string, date: string) {
+    return this.http.post<{ explanation: string }>(
+      `${this.baseUrl}/simulations/${simulationId}/explain`,
+      { date }
+    );
+  }
 }

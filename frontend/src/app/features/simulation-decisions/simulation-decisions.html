@@ -81,7 +81,7 @@
       <thead>
         <tr>
           <th>Date</th><th>Action</th><th>Price</th><th>Reason</th><th>Executed</th>
-          <th>RSI</th><th>SMA short</th><th>SMA long</th><th>Rejection reason</th>
+          <th>RSI</th><th>SMA short</th><th>SMA long</th><th>Rejection reason</th><th>Explain</th>
         </tr>
       </thead>
       <tbody>
@@ -96,6 +96,9 @@
             <td class="mono">{{ getSignalForDate(d.date)?.sma_short | number:'1.2-2' }}</td>
             <td class="mono">{{ getSignalForDate(d.date)?.sma_long | number:'1.2-2' }}</td>
             <td>{{ getUnexecutedReason(d) }}</td>
+            <td>
+              <button class="explain-btn" (click)="openExplanation(d.date)">Explain</button>
+            </td>
           </tr>
         }
       </tbody>
@@ -103,4 +106,31 @@
   }
 
   <a routerLink="/dashboard">Back to dashboard</a>
+
+  @if (explanationOpen) {
+    <div class="modal-overlay" (click)="closeExplanation()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Why this decision — {{ explanationDate }}</h3>
+          <button class="modal-close" (click)="closeExplanation()">✕</button>
+        </div>
+
+        @if (explanationLoading) {
+          <div class="modal-body">
+            <p class="loading-text">Analyzing the decision with the AI agent…</p>
+          </div>
+        } @else if (explanationError) {
+          <div class="modal-body">
+            <p class="error-text">{{ explanationError }}</p>
+            <button class="explain-btn" (click)="openExplanation(explanationDate!)">Retry</button>
+          </div>
+        } @else {
+          <div class="modal-body">
+            <p class="explanation-text">{{ explanationText }}</p>
+            <p class="disclaimer">This explanation is based only on recorded simulation data and is not financial advice or a guarantee of future results.</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
 </div>
