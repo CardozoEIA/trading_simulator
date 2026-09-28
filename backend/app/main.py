@@ -10,24 +10,22 @@ from app.modules.portfolio.routes import router as portfolio_router
 from app.modules.decisions.routes import router as decisions_router
 from app.modules.signals.routes import router as signals_router
 from app.modules.agent.routes import router as agent_router
+from app.modules.results.routes import router as results_router
 
-app = FastAPI(
-    title="Market Navigator AI API"
-)
+app = FastAPI(title="Market Navigator AI API")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:4200"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
+
 
 @app.get("/")
 def root():
-    return {
-        "message": "Market Navigator AI API funcionando"
-    }
+    return {"message": "Market Navigator AI API funcionando"}
 
 
 app.include_router(users_router)
@@ -39,3 +37,4 @@ app.include_router(portfolio_router)
 app.include_router(decisions_router)
 app.include_router(signals_router)
 app.include_router(agent_router)
+app.include_router(results_router)

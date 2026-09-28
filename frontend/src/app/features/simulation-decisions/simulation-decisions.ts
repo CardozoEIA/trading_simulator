@@ -30,6 +30,8 @@ export class SimulationDecisions implements OnInit {
 
   simulationId: string | null = null;
   summary: ConfigurationSummaryResponse | null = null;
+  simulationStatus: string | null = null;
+  stopReason: string | null = null;
   decisions: Decision[] = [];
   trades: Trade[] = [];
   equityCurve: EquityPoint[] = [];
@@ -43,6 +45,8 @@ export class SimulationDecisions implements OnInit {
 
     this.simulations.getSimulationStatus(this.simulationId).subscribe({
       next: (status) => {
+        this.simulationStatus = status.status;
+        this.stopReason = status.stop_reason;
         this.simulations.getConfigurationSummary(status.configuration_id).subscribe({
           next: (summary) => { this.summary = summary; },
           error: (error) => { this.alert.showApiError(error); }
@@ -140,7 +144,7 @@ export class SimulationDecisions implements OnInit {
       .map((v, i) => `${i * 4},${100 - ((v - min) / range) * 100}`)
       .join(' ');
   }
-  
+
 
   getSignalForDate(date: string): Signal | undefined {
     return this.signals.find(s => s.date === date);

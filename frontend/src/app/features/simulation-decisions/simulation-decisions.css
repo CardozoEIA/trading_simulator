@@ -163,6 +163,34 @@ a:hover { text-decoration: underline; }
 @media (max-width: 640px) {
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+.status-tag {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.status-tag.finished {
+  background-color: var(--green-success);
+  color: var(--background-main);
+}
+
+.status-tag.stopped {
+  background-color: #a13d3d;
+  color: var(--surface-text);
+}
+
+.stop-reason {
+  margin-top: 0.4rem;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--secondary-blue);
+}
+
 .explain-btn {
   background: none;
   border: 1px solid var(--golden-accent);
