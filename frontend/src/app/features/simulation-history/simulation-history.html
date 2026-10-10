@@ -1,0 +1,68 @@
+<div class="history-container">
+  <span class="section-tag">SIMULATION HISTORY</span>
+  <h1>Your past simulations</h1>
+
+  @if (loading) {
+    <p class="loading-text">Loading your simulations…</p>
+  } @else if (history.length === 0) {
+    <div class="empty-state">
+      <p>You haven't run any simulations yet.</p>
+      <a routerLink="/simulation-config" class="primary-link">Configure your first simulation</a>
+    </div>
+  } @else {
+    <p class="count-text">Showing your {{ history.length }} most recent simulations, newest first.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Run on</th>
+            <th>Asset</th>
+            <th>Strategies</th>
+            <th>Period</th>
+            <th>Initial capital</th>
+            <th>Final value</th>
+            <th>Return</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of history; track item.id) {
+            <tr class="clickable" (click)="open(item)">
+              <td class="mono">{{ item.started_at | date:'yyyy-MM-dd HH:mm' }}</td>
+              <td>{{ item.asset }}</td>
+              <td>{{ item.strategies.join(', ') }}</td>
+              <td class="mono">{{ item.start_date }} → {{ item.end_date }}</td>
+              <td class="mono">${{ item.initial_capital | number:'1.2-2' }}</td>
+              <td class="mono">
+                {{ item.final_value !== null ? '$' + (item.final_value | number:'1.2-2') : '—' }}
+              </td>
+              <td class="mono"
+                  [class.positive]="item.total_return_pct !== null && item.total_return_pct >= 0"
+                  [class.negative]="item.total_return_pct !== null && item.total_return_pct < 0">
+                @if (item.total_return_pct !== null) {
+                  {{ item.total_return_pct >= 0 ? '+' : '' }}{{ item.total_return_pct | number:'1.2-2' }}%
+                } @else {
+                  —
+                }
+              </td>
+              <td>
+                <span class="status-pill"
+                      [class.finished]="item.status === 'FINISHED'"
+                      [class.stopped]="item.status === 'STOPPED_BY_RISK'"
+                      [class.running]="item.status === 'RUNNING'">
+                  {{ statusLabel(item.status) }}
+                </span>
+              </td>
+              <td>
+                <button class="open-btn" (click)="open(item); $event.stopPropagation()">Open</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <a routerLink="/dashboard" class="back-link">Back to dashboard</a>
+</div>

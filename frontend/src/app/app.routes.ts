@@ -9,6 +9,7 @@ import { RiskConfig } from './features/risk-config/risk-config';
 import { ConfirmConfig } from './features/confirm-config/confirm-config';
 import { SimulationStatus } from './features/simulation-status/simulation-status';
 import { SimulationDecisions } from './features/simulation-decisions/simulation-decisions';
+import { SimulationHistory } from './features/simulation-history/simulation-history';
 
 
 export const routes: Routes = [
@@ -19,5 +20,6 @@ export const routes: Routes = [
     { path: 'risk-config/:configurationId', component: RiskConfig, canActivate: [authGuard] },
     { path: 'confirm-config/:configurationId', component: ConfirmConfig, canActivate: [authGuard] },
     { path: 'simulation-status/:simulationId', component: SimulationStatus, canActivate: [authGuard] },
-    { path: 'simulation-decisions/:simulationId', component: SimulationDecisions, canActivate: [authGuard] }
+    { path: 'simulation-decisions/:simulationId', component: SimulationDecisions, canActivate: [authGuard] },
+    { path: 'history', component: SimulationHistory, canActivate: [authGuard] },
 ];

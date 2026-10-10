@@ -4,12 +4,14 @@ from app.core.dependencies import get_current_user
 from app.modules.simulations.schema import (
     SimulationStartRequest,
     SimulationResponse,
-    ConfigurationSummaryResponse
+    ConfigurationSummaryResponse,
+    SimulationHistoryItem
 )
 from app.modules.simulations.service import (
     start_simulation,
     get_simulation_status,
-    get_full_configuration
+    get_full_configuration,
+    get_simulation_history
 )
 
 
@@ -44,3 +46,7 @@ def status(
     current_user=Depends(get_current_user)
 ):
     return get_simulation_status(simulation_id, current_user.id)
+
+@router.get("/history", response_model=list[SimulationHistoryItem])
+def history(current_user=Depends(get_current_user)):
+    return get_simulation_history(current_user.id)
