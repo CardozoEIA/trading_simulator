@@ -37,3 +37,16 @@ class ConfigurationSummaryResponse(BaseModel):
     initial_capital: float
     strategies: list[str]  # <-- corregido
     risk: RiskSummary
+class SimulationHistoryItem(BaseModel):
+    id: str
+    status: SimulationStatus
+    started_at: datetime
+    finished_at: datetime | None = None
+    stop_reason: str | None = None
+    asset: str
+    start_date: date
+    end_date: date
+    strategies: list[str]
+    initial_capital: float
+    final_value: float | None = None       # None while the simulation is still running
+    total_return_pct: float | None = None

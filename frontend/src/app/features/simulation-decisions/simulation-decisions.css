@@ -264,3 +264,12 @@ a:hover { text-decoration: underline; }
   color: #a13d3d;
   margin: 0 0 1rem 0;
 }
+.stat-value.small { font-size: 0.95rem; }
+
+.back-links {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.back-links a { margin-top: 0; }

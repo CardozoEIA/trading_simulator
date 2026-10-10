@@ -30,12 +30,12 @@
       <span class="stat-value">${{ finalValue | number:'1.2-2' }}</span>
     </div>
     <div class="stat-card">
-      <span class="stat-label">Trades executed</span>
-      <span class="stat-value">{{ trades.length }}</span>
+      <span class="stat-label">Profit / loss</span>
+      <span class="stat-value">${{ (finalValue - summary.initial_capital) | number:'1.2-2' }}</span>
     </div>
     <div class="stat-card">
-      <span class="stat-label">Win rate</span>
-      <span class="stat-value">{{ roundTrips.length ? (winRate | number:'1.0-0') + '%' : '—' }}</span>
+      <span class="stat-label">Trades executed</span>
+      <span class="stat-value">{{ trades.length }}</span>
     </div>
   </div>
 
@@ -46,15 +46,69 @@
   <p class="note">{{ unexecutedSignals }} strategy signal(s) could not be executed (e.g. a SELL signal with no open
     position).</p>
   }
+
+  <h2>Configuration</h2>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <span class="stat-label">Period</span>
+      <span class="stat-value small">{{ summary.start_date }} → {{ summary.end_date }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Strategies</span>
+      <span class="stat-value small">{{ summary.strategies.join(', ') }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Stop-loss</span>
+      <span class="stat-value">{{ summary.risk.stop_loss_percentage }}%</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Max position size</span>
+      <span class="stat-value">{{ summary.risk.max_position_size }}%</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Max drawdown</span>
+      <span class="stat-value">{{ summary.risk.max_drawdown }}%</span>
+    </div>
+  </div>
+  }
+
+  @if (metrics) {
+  <h2>Performance metrics</h2>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <span class="stat-label">Total return</span>
+      <span class="stat-value">{{ metrics.total_return_pct | number:'1.2-2' }}%</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Sharpe ratio</span>
+      <span class="stat-value">{{ metrics.sharpe_ratio | number:'1.2-2' }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Max drawdown</span>
+      <span class="stat-value">{{ metrics.max_drawdown_pct | number:'1.2-2' }}%</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Win rate</span>
+      <span class="stat-value">{{ metrics.total_trades ? (metrics.win_rate | number:'1.0-0') + '%' : '—' }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Profit factor</span>
+      <span class="stat-value">{{ metrics.total_trades ? (metrics.profit_factor !== null ? (metrics.profit_factor | number:'1.2-2') : '∞') : '—' }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Winning trades</span>
+      <span class="stat-value">{{ metrics.winning_trades }}/{{ metrics.total_trades }}</span>
+    </div>
+  </div>
   }
 
   @if (equityCurve.length > 1) {
-  <div class="mini-chart">
-    <svg [attr.viewBox]="'0 0 ' + chartWidth + ' 100'" preserveAspectRatio="none">
-      <polyline [attr.points]="chartPoints" fill="none" stroke="var(--golden-accent)" stroke-width="2" />
-    </svg>
-    <p class="chart-caption">Daily portfolio value over the simulated period</p>
-  </div>
+  <h2>Capital evolution</h2>
+  <app-equity-chart
+    [equityCurve]="equityCurve"
+    [trades]="trades"
+    [initialCapital]="summary?.initial_capital ?? null">
+  </app-equity-chart>
   }
 
   <h2>Trades</h2>
@@ -130,7 +184,10 @@
   </table>
   }
 
-  <a routerLink="/dashboard">Back to dashboard</a>
+  <div class="back-links">
+    <a routerLink="/history">Back to history</a>
+    <a routerLink="/dashboard">Back to dashboard</a>
+  </div>
 
   @if (explanationOpen) {
   <div class="modal-overlay" (click)="closeExplanation()">

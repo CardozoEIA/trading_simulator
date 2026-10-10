@@ -7,7 +7,8 @@ import { Decision } from '../models/decision.model';
 import { Trade } from '../models/trade.model';
 import { EquityPoint } from '../models/equity-point.model';
 import { Signal } from '../models/signal.model';
-
+import { SimulationMetrics } from '../models/metrics.model';
+import { SimulationHistoryItem } from '../models/simulation-history.model';
 
 @Injectable({
   providedIn: 'root',
@@ -47,5 +48,11 @@ export class Simulations {
       `${this.baseUrl}/simulations/${simulationId}/explain`,
       { date }
     );
+  }
+  public getMetrics(simulationId: string) {
+    return this.http.get<SimulationMetrics>(`${this.baseUrl}/results/${simulationId}/metrics`);
+  }
+  public getHistory() {
+    return this.http.get<SimulationHistoryItem[]>(`${this.baseUrl}/simulations/history`);
   }
 }
