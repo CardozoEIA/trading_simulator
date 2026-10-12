@@ -46,6 +46,7 @@ def _ensure_owner(simulation_id: str, user_id: str) -> dict:
             .eq("id", simulation_id).eq("user_id", user_id).limit(1).execute()
         )
     except Exception:
+        logger.exception("Could not verify simulation ownership")
         raise HTTPException(status_code=503, detail="Could not connect to the database, please try again")
     if not response.data:
         raise HTTPException(status_code=404, detail="Simulation not found")
@@ -83,7 +84,8 @@ def get_insights(simulation_id: str, user_id: str) -> dict:
     try:
         response = supabase.table(TABLE).select("*").eq("simulation_id", simulation_id).limit(1).execute()
     except Exception:
-        raise HTTPException(status_code=503, detail="Could not connect to the database, please try again")
+        logger.exception("Could not read %s (did you run migrations/us26_simulation_insights.sql?)", TABLE)
+        raise HTTPException(status_code=503, detail="Insights are not available right now, please try again")
     if not response.data:
         return {"simulation_id": simulation_id, "status": "NOT_GENERATED"}
 
@@ -112,5 +114,6 @@ def request_generation(simulation_id: str, user_id: str) -> dict:
     try:
         mark_pending(simulation_id)
     except Exception:
+        logger.exception("Could not write %s", TABLE)
         raise HTTPException(status_code=503, detail="Could not connect to the database, please try again")
     return {"simulation_id": simulation_id, "status": "PENDING"}
