@@ -9,6 +9,12 @@ import {
 import { EquityPoint } from '../../models/equity-point.model';
 import { Trade } from '../../models/trade.model';
 
+/** Agent highlight drawn on the curve (e.g. the peak and low of the largest drop). */
+export interface ChartHighlight {
+  date: string;
+  text: string;
+}
+
 interface HoverInfo {
   date: string;
   value: number;
@@ -27,6 +33,7 @@ export class EquityChart implements AfterViewInit, OnChanges, OnDestroy {
   @Input() equityCurve: EquityPoint[] = [];
   @Input() trades: Trade[] = [];
   @Input() initialCapital: number | null = null;
+  @Input() highlights: ChartHighlight[] = [];
 
   @ViewChild('chartContainer') private container!: ElementRef<HTMLDivElement>;
 
@@ -93,11 +100,14 @@ export class EquityChart implements AfterViewInit, OnChanges, OnDestroy {
     );
 
     // Trade markers: shape + text, not color alone. Must be sorted by time.
-    const markers: SeriesMarker<Time>[] = [...this.trades]
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .map(t => t.type === 'BUY'
-        ? { time: t.date as Time, position: 'belowBar', color: '#2ECC91', shape: 'arrowUp', text: 'BUY' }
-        : { time: t.date as Time, position: 'aboveBar', color: '#E0605E', shape: 'arrowDown', text: 'SELL' });
+    const tradeMarkers: SeriesMarker<Time>[] = this.trades.map(t => t.type === 'BUY'
+      ? { time: t.date as Time, position: 'belowBar', color: '#2ECC91', shape: 'arrowUp', text: 'BUY' }
+      : { time: t.date as Time, position: 'aboveBar', color: '#E0605E', shape: 'arrowDown', text: 'SELL' });
+    const highlightMarkers: SeriesMarker<Time>[] = this.highlights.map(h => (
+      { time: h.date as Time, position: 'inBar', color: '#C9A15C', shape: 'circle', text: h.text }
+    ));
+    const markers = [...tradeMarkers, ...highlightMarkers]
+      .sort((a, b) => (a.time as string).localeCompare(b.time as string));
     this.series.setMarkers(markers);
 
     // Reference line at the initial capital, so the start level is always visible.

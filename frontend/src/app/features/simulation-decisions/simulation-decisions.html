@@ -18,6 +18,17 @@
     @if (stopReason) {
     <p class="stop-reason">{{ stopReason }}</p>
     }
+    @if (headlineHighlights.length) {
+    <div class="hl-row-chips">
+      @for (h of headlineHighlights; track h.kind) {
+      <button type="button" class="hl-chip on-light" [class.positive]="h.tone === 'positive'"
+        [class.negative]="h.tone === 'negative'" (click)="openHighlight(h)">{{ h.label }}</button>
+      }
+    </div>
+    }
+    @if (insights?.status === 'PENDING' && insights?.highlights?.length) {
+    <p class="hl-pending">The agent is reviewing this run. Click a highlight to read its explanation.</p>
+    }
   </div>
 
   <div class="stat-grid">
@@ -104,9 +115,18 @@
 
   @if (equityCurve.length > 1) {
   <h2>Capital evolution</h2>
+  @if (chartHighlights.length) {
+  <div class="hl-row-chips">
+    @for (h of chartHighlights; track h.kind) {
+    <button type="button" class="hl-chip" [class.positive]="h.tone === 'positive'"
+      [class.negative]="h.tone === 'negative'" (click)="openHighlight(h)">{{ h.label }}</button>
+    }
+  </div>
+  }
   <app-equity-chart
     [equityCurve]="equityCurve"
     [trades]="trades"
+    [highlights]="chartMarkers"
     [initialCapital]="summary?.initial_capital ?? null">
   </app-equity-chart>
   }
@@ -128,9 +148,18 @@
     </thead>
     <tbody>
       @for (t of trades; track t.id) {
-      <tr>
+      @let hl = tradeHighlight(t);
+      <tr [class.hl-trade]="hl">
         <td class="mono">{{ t.date }}</td>
-        <td><span class="badge" [class.buy]="t.type === 'BUY'" [class.sell]="t.type === 'SELL'">{{ t.type }}</span></td>
+        <td class="type-cell">
+          <span class="badge" [class.buy]="t.type === 'BUY'" [class.sell]="t.type === 'SELL'">{{ t.type }}</span>
+          @if (hl && t.type === 'SELL') {
+          <button type="button" class="hl-chip small" [class.positive]="hl.tone === 'positive'"
+            [class.negative]="hl.tone === 'negative'" (click)="openHighlight(hl)">
+            {{ hl.kind === 'BEST_TRADE' ? 'Best trade' : 'Worst trade' }}
+          </button>
+          }
+        </td>
         <td class="mono">${{ t.price | number:'1.2-2' }}</td>
         <td class="mono">{{ t.quantity | number:'1.4-4' }}</td>
         <td class="mono">${{ t.cash_after | number:'1.2-2' }}</td>
@@ -213,6 +242,31 @@
           or a guarantee of future results.</p>
       </div>
       }
+    </div>
+  </div>
+  }
+  @if (selectedHighlight; as h) {
+  <div class="modal-overlay" (click)="closeHighlight()">
+    <div class="modal-card" role="dialog" aria-modal="true" [attr.aria-label]="h.title || h.label"
+      (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ h.title || h.label }}</h3>
+        <button class="modal-close" aria-label="Close" (click)="closeHighlight()">✕</button>
+      </div>
+      <div class="modal-body">
+        @if (h.explanation) {
+        <p class="explanation-text">{{ h.explanation }}</p>
+        } @else if (insights?.status === 'PENDING') {
+        <p class="loading-text">The agent is still writing this explanation…</p>
+        } @else {
+        <p class="error-text">{{ insights?.error || 'The agent could not explain this highlight.' }}</p>
+        <button class="explain-btn" (click)="retryInsights()">Try again</button>
+        }
+        <p class="hl-facts-label">From the simulation data</p>
+        <p class="hl-facts">{{ h.facts }}</p>
+        <p class="disclaimer">Based only on recorded simulation data. Not financial advice or a guarantee of future
+          results.</p>
+      </div>
     </div>
   </div>
   }
