@@ -9,6 +9,7 @@ import { EquityPoint } from '../models/equity-point.model';
 import { Signal } from '../models/signal.model';
 import { SimulationMetrics } from '../models/metrics.model';
 import { SimulationHistoryItem } from '../models/simulation-history.model';
+import { SimulationInsights } from '../models/insights.model';
 
 @Injectable({
   providedIn: 'root',
@@ -54,5 +55,11 @@ export class Simulations {
   }
   public getHistory() {
     return this.http.get<SimulationHistoryItem[]>(`${this.baseUrl}/simulations/history`);
+  }
+  public getInsights(simulationId: string) {
+    return this.http.get<SimulationInsights>(`${this.baseUrl}/simulations/${simulationId}/insights`);
+  }
+  public generateInsights(simulationId: string) {
+    return this.http.post<SimulationInsights>(`${this.baseUrl}/simulations/${simulationId}/insights`, {});
   }
 }

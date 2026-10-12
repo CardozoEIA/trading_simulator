@@ -10,10 +10,11 @@ import { Signal } from '../../models/signal.model';
 import { SimulationMetrics } from '../../models/metrics.model';
 import { ConfigurationSummaryResponse } from '../../models/configuration-summary-response.model';
 import { EquityChart } from '../../shared/equity-chart/equity-chart';
+import { SimulationInsightsPanel } from '../../shared/simulation-insights/simulation-insights';
 
 @Component({
   selector: 'app-simulation-decisions',
-  imports: [RouterLink, DecimalPipe, EquityChart],
+  imports: [RouterLink, DecimalPipe, EquityChart, SimulationInsightsPanel],
   templateUrl: './simulation-decisions.html',
   styleUrl: './simulation-decisions.css',
 })
