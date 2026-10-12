@@ -179,6 +179,15 @@ export class SimulationDecisions implements OnInit, OnDestroy {
     return this.trades.length > 0 && this.trades[this.trades.length - 1].type === 'BUY';
   }
 
+  get benchmarkDeltaPct(): number | null {
+    if (!this.summary?.benchmark) return null;
+    return this.totalReturnPct - this.summary.benchmark.total_return_pct;
+  }
+
+  get beatBenchmark(): boolean {
+    return (this.benchmarkDeltaPct ?? 0) >= 0;
+  }
+
   get unexecutedSignals(): number {
     return this.signalDecisions.length - this.trades.length;
   }
