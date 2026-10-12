@@ -222,3 +222,75 @@ def get_simulation_status(simulation_id: str, user_id: str) -> dict:
         raise HTTPException(status_code=404, detail="Simulation not found")
 
     return response.data[0]
+
+HISTORY_LIMIT = 50
+
+
+def get_simulation_history(user_id: str) -> list[dict]:
+    """Lists the user's simulations, newest first, with configuration and final performance.
+    Uses three queries in total instead of one per simulation."""
+    try:
+        sims = (
+            supabase.table("simulations")
+            .select("id, configuration_id, status, started_at, finished_at, stop_reason")
+            .eq("user_id", user_id)
+            .order("started_at", desc=True)
+            .limit(HISTORY_LIMIT)
+            .execute()
+        ).data
+
+        if not sims:
+            return []
+
+        config_ids = list({s["configuration_id"] for s in sims})
+        sim_ids = [s["id"] for s in sims]
+
+        configs = (
+            supabase.table("backtest_configurations")
+            .select("id, asset, start_date, end_date, initial_capital, strategies")
+            .in_("id", config_ids)
+            .execute()
+        ).data
+
+        finals = (
+            supabase.table("simulation_final_values")
+            .select("simulation_id, portfolio_value")
+            .in_("simulation_id", sim_ids)
+            .execute()
+        ).data
+    except Exception:
+        raise HTTPException(status_code=503, detail="Could not connect to the database, please try again")
+
+    configs_by_id = {c["id"]: c for c in configs}
+    final_by_sim = {f["simulation_id"]: f["portfolio_value"] for f in finals}
+
+    history = []
+    for s in sims:
+        config = configs_by_id.get(s["configuration_id"])
+        if not config:
+            continue  # orphan simulation without configuration; skip instead of failing the whole list
+
+        initial_capital = config["initial_capital"]
+        final_value = final_by_sim.get(s["id"])
+        total_return_pct = (
+            ((final_value / initial_capital) - 1) * 100
+            if final_value is not None and initial_capital > 0
+            else None
+        )
+
+        history.append({
+            "id": s["id"],
+            "status": s["status"],
+            "started_at": s["started_at"],
+            "finished_at": s["finished_at"],
+            "stop_reason": s["stop_reason"],
+            "asset": config["asset"],
+            "start_date": config["start_date"],
+            "end_date": config["end_date"],
+            "strategies": config["strategies"],
+            "initial_capital": initial_capital,
+            "final_value": final_value,
+            "total_return_pct": total_return_pct,
+        })
+
+    return history

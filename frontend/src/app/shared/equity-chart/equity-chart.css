@@ -1,0 +1,46 @@
+.equity-chart {
+  position: relative;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background-color: rgba(245, 243, 238, 0.04);
+  border: 1px solid rgba(245, 243, 238, 0.12);
+  border-radius: 4px;
+}
+
+.chart-area {
+  width: 100%;
+  height: 320px;
+}
+
+.chart-tooltip {
+  position: absolute;
+  top: 1rem;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.5rem 0.7rem;
+  background-color: var(--surface-text);
+  color: var(--background-main);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.tt-date { color: var(--secondary-blue); font-family: 'JetBrains Mono', monospace; }
+.tt-value { font-weight: 700; font-size: 0.9rem; }
+.tt-change.up { color: #1c8a5f; }
+.tt-change.down { color: #a13d3d; }
+.tt-trade { font-weight: 600; }
+
+.chart-caption {
+  font-size: 0.75rem;
+  color: var(--secondary-blue);
+  margin: 0.75rem 0 0 0;
+}
+
+@media (max-width: 640px) {
+  .chart-area { height: 240px; }
+}

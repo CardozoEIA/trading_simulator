@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { Simulations } from '../../core/simulations';
@@ -7,23 +7,19 @@ import { Decision } from '../../models/decision.model';
 import { Trade } from '../../models/trade.model';
 import { EquityPoint } from '../../models/equity-point.model';
 import { Signal } from '../../models/signal.model';
+import { SimulationMetrics } from '../../models/metrics.model';
 import { ConfigurationSummaryResponse } from '../../models/configuration-summary-response.model';
-
-interface RoundTrip {
-  entryDate: string;
-  exitDate: string;
-  entryPrice: number;
-  exitPrice: number;
-  profitPct: number;
-}
+import { EquityChart } from '../../shared/equity-chart/equity-chart';
+import { ChartHighlight } from '../../shared/equity-chart/equity-chart';
+import { Highlight, HighlightKind, SimulationInsights } from '../../models/insights.model';
 
 @Component({
   selector: 'app-simulation-decisions',
-  imports: [RouterLink, DecimalPipe],
+  imports: [RouterLink, DecimalPipe, EquityChart],
   templateUrl: './simulation-decisions.html',
   styleUrl: './simulation-decisions.css',
 })
-export class SimulationDecisions implements OnInit {
+export class SimulationDecisions implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private simulations = inject(Simulations);
   private alert = inject(Alert);
@@ -36,6 +32,7 @@ export class SimulationDecisions implements OnInit {
   trades: Trade[] = [];
   equityCurve: EquityPoint[] = [];
   signals: Signal[] = [];
+  metrics: SimulationMetrics | null = null;
   loading = true;
   showAllDecisions = false;
 
@@ -74,6 +71,89 @@ export class SimulationDecisions implements OnInit {
       next: (response) => { this.signals = response; },
       error: (error) => { this.alert.showApiError(error); }
     });
+
+    this.simulations.getMetrics(this.simulationId).subscribe({
+      next: (response) => { this.metrics = response; },
+      error: (error) => { this.alert.showApiError(error); }
+    });
+    this.loadInsights();
+  }
+
+  ngOnDestroy(): void {
+    if (this.insightsTimer) clearTimeout(this.insightsTimer);
+  }
+
+  // --- Agent highlights (US-26) ---
+  insights: SimulationInsights | null = null;
+  selectedHighlight: Highlight | null = null;
+  private insightsTimer: ReturnType<typeof setTimeout> | null = null;
+  private insightsPolls = 0;
+
+  private loadInsights(): void {
+    if (!this.simulationId) return;
+    this.simulations.getInsights(this.simulationId).subscribe({
+      // Highlights are optional: errors here never affect the rest of the results view.
+      next: (response) => {
+        this.insights = response;
+        if (this.selectedHighlight) {
+          this.selectedHighlight = response.highlights.find(h => h.kind === this.selectedHighlight!.kind) ?? null;
+        }
+        if (response.status === 'PENDING' && this.insightsPolls < 60) {
+          this.insightsPolls++;
+          this.insightsTimer = setTimeout(() => this.loadInsights(), 3000);
+        }
+      },
+      error: () => { this.insights = null; },
+    });
+  }
+
+  highlight(kind: HighlightKind): Highlight | undefined {
+    return this.insights?.highlights.find(h => h.kind === kind);
+  }
+
+  get headlineHighlights(): Highlight[] {
+    return (this.insights?.highlights ?? []).filter(h => h.kind === 'BUY_AND_HOLD' || h.kind === 'RISK_STOP');
+  }
+
+  get chartHighlights(): Highlight[] {
+    return (this.insights?.highlights ?? []).filter(h => h.kind !== 'BUY_AND_HOLD' && h.kind !== 'RISK_STOP');
+  }
+
+  get chartMarkers(): ChartHighlight[] {
+    const dd = this.highlight('MAX_DRAWDOWN');
+    if (!dd || dd.dates.length < 2) return [];
+    return [
+      { date: dd.dates[0], text: 'Peak' },
+      { date: dd.dates[1], text: dd.label.replace('Largest drop ', 'Low ') },
+    ];
+  }
+
+  /** Best/worst trade highlight for a row of the trades table (both the BUY and the SELL). */
+  tradeHighlight(t: Trade): Highlight | undefined {
+    return ['BEST_TRADE', 'WORST_TRADE']
+      .map(k => this.highlight(k as HighlightKind))
+      .find(h => !!h && ((t.type === 'BUY' && t.date === h.dates[0]) || (t.type === 'SELL' && t.date === h.dates[1])));
+  }
+
+  openHighlight(h: Highlight): void {
+    this.selectedHighlight = h;
+  }
+
+  closeHighlight(): void {
+    this.selectedHighlight = null;
+  }
+
+  retryInsights(): void {
+    if (!this.simulationId) return;
+    this.simulations.generateInsights(this.simulationId).subscribe({
+      next: (response) => {
+        this.insights = response;
+        this.insightsPolls = 0;
+        if (this.insightsTimer) clearTimeout(this.insightsTimer);
+        this.insightsTimer = setTimeout(() => this.loadInsights(), 3000);
+      },
+      error: (error) => { this.alert.showApiError(error); },
+    });
   }
 
   get signalDecisions(): Decision[] {
@@ -99,62 +179,25 @@ export class SimulationDecisions implements OnInit {
     return this.trades.length > 0 && this.trades[this.trades.length - 1].type === 'BUY';
   }
 
-  get roundTrips(): RoundTrip[] {
-    const pairs: RoundTrip[] = [];
-    for (let i = 0; i + 1 < this.trades.length; i += 2) {
-      const entry = this.trades[i];
-      const exit = this.trades[i + 1];
-      if (entry.type === 'BUY' && exit.type === 'SELL') {
-        pairs.push({
-          entryDate: entry.date,
-          exitDate: exit.date,
-          entryPrice: entry.price,
-          exitPrice: exit.price,
-          profitPct: ((exit.price / entry.price) - 1) * 100
-        });
-      }
-    }
-    return pairs;
-  }
-
-  get winCount(): number {
-    return this.roundTrips.filter(r => r.profitPct > 0).length;
-  }
-
-  get winRate(): number {
-    if (this.roundTrips.length === 0) return 0;
-    return (this.winCount / this.roundTrips.length) * 100;
-  }
-
   get unexecutedSignals(): number {
     return this.signalDecisions.length - this.trades.length;
   }
 
-  get chartWidth(): number {
-    return Math.max(this.equityCurve.length * 4, 100);
-  }
 
-  get chartPoints(): string {
-    if (this.equityCurve.length === 0) return '';
-    const values = this.equityCurve.map(e => e.portfolio_value);
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const range = max - min || 1;
-    return values
-      .map((v, i) => `${i * 4},${100 - ((v - min) / range) * 100}`)
-      .join(' ');
-  }
+
 
 
   getSignalForDate(date: string): Signal | undefined {
     return this.signals.find(s => s.date === date);
   }
+
   getUnexecutedReason(d: Decision): string {
     if (d.rejection_reason) return d.rejection_reason;
     if (d.executed) return '';
     return d.action === 'BUY' ? 'Already fully invested — no cash available' : 'No open position to sell';
   }
-    // --- Agent explanation modal (US-20) ---
+
+  // --- Agent explanation modal (US-20) ---
   explanationOpen = false;
   explanationDate: string | null = null;
   explanationText = '';

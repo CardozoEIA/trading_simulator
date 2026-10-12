@@ -1,0 +1,30 @@
+<div class="equity-chart">
+  <div class="chart-area"
+       #chartContainer
+       role="img"
+       aria-label="Daily portfolio value over the simulated period, with markers for each buy and sell">
+  </div>
+
+  @if (hover) {
+    <div class="chart-tooltip" [style.left.px]="hover.left">
+      <span class="tt-date">{{ hover.date }}</span>
+      <span class="tt-value">${{ hover.value | number:'1.2-2' }}</span>
+      <span class="tt-change" [class.up]="hover.changePct >= 0" [class.down]="hover.changePct < 0">
+        {{ hover.changePct >= 0 ? '+' : '' }}{{ hover.changePct | number:'1.2-2' }}% vs. start
+      </span>
+      @if (hover.trade) {
+        <span class="tt-trade">
+          {{ hover.trade.type === 'BUY' ? '▲' : '▼' }} {{ hover.trade.type }} at ${{ hover.trade.price | number:'1.2-2' }}
+        </span>
+      }
+    </div>
+  }
+
+  @if (startPoint && endPoint) {
+    <p class="chart-caption">
+      Start: ${{ startPoint.portfolio_value | number:'1.2-2' }} ({{ startPoint.date }})
+      · End: ${{ endPoint.portfolio_value | number:'1.2-2' }} ({{ endPoint.date }})
+      · Scroll to zoom, drag to pan.
+    </p>
+  }
+</div>

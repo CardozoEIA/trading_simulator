@@ -166,6 +166,7 @@ a:hover { text-decoration: underline; }
 
 .status-tag {
   display: inline-block;
+  align-self: flex-start;
   margin-top: 0.5rem;
   padding: 0.3rem 0.8rem;
   border-radius: 999px;
@@ -263,4 +264,107 @@ a:hover { text-decoration: underline; }
   font-size: 0.88rem;
   color: #a13d3d;
   margin: 0 0 1rem 0;
+}
+.stat-value.small { font-size: 0.95rem; }
+
+.back-links {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.back-links a { margin-top: 0; }
+/* --- Agent highlights (US-26) --- */
+.hl-row-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.25rem 0 1rem 0;
+}
+
+.hero-return .hl-row-chips {
+  margin: 0.75rem 0 0 0;
+}
+
+.hl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(201, 161, 92, 0.1);
+  border: 1px solid var(--golden-accent);
+  color: var(--surface-text);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.hl-chip::before {
+  content: '';
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background-color: var(--golden-accent);
+}
+
+.hl-chip.positive::before { background-color: var(--green-success); }
+.hl-chip.negative::before { background-color: #E0605E; }
+
+.hl-chip:hover {
+  background-color: var(--golden-accent);
+  color: var(--background-main);
+}
+
+.hl-chip:focus-visible {
+  outline: 2px solid var(--golden-accent);
+  outline-offset: 2px;
+}
+
+.hl-chip.on-light {
+  color: var(--background-main);
+  background: rgba(201, 161, 92, 0.16);
+}
+
+.hl-chip.small {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.6rem;
+  margin-left: 0.5rem;
+}
+
+.hl-pending {
+  margin: 0.6rem 0 0 0;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--secondary-blue);
+}
+
+tr.hl-trade td {
+  background-color: rgba(201, 161, 92, 0.08);
+}
+
+tr.hl-trade td:first-child {
+  box-shadow: inset 3px 0 0 var(--golden-accent);
+}
+
+.type-cell {
+  white-space: nowrap;
+}
+
+.hl-facts-label {
+  margin: 1rem 0 0.3rem 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--secondary-blue);
+}
+
+.hl-facts {
+  margin: 0 0 1rem 0;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--background-main);
+  background: rgba(11, 27, 43, 0.05);
+  padding: 0.6rem 0.75rem;
+  border-radius: 4px;
 }
