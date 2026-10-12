@@ -3,6 +3,8 @@ from enum import Enum
 
 from pydantic import BaseModel
 
+from app.services.benchmark.schema import BuyAndHoldSummary
+
 
 class SimulationStatus(str, Enum):
     RUNNING = "RUNNING"
@@ -35,5 +37,6 @@ class ConfigurationSummaryResponse(BaseModel):
     start_date: date
     end_date: date
     initial_capital: float
-    strategies: list[str]  # <-- corregido
+    strategies: list[str]
     risk: RiskSummary
+    benchmark: BuyAndHoldSummary
