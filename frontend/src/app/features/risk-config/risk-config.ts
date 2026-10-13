@@ -6,6 +6,8 @@ import { Alert } from '../../shared/alert';
 import { StepIndicator } from '../../shared/step-indicator/step-indicator';
 import { RiskConfiguration } from '../../models/risk-configuration.model';
 import { RiskConfigurationResponse } from '../../models/risk-configuration-response.model';
+import { PENDING_RISK_CHANGE_KEY } from '../../models/chat.model';
+import { HelpHint } from '../../shared/help-hint/help-hint';
 
 function percentageValidator(control: AbstractControl): ValidationErrors | null {
   const value = control.value;
@@ -18,7 +20,7 @@ function percentageValidator(control: AbstractControl): ValidationErrors | null 
 
 @Component({
   selector: 'app-risk-config',
-  imports: [ReactiveFormsModule, StepIndicator],
+  imports: [ReactiveFormsModule, StepIndicator, HelpHint],
   templateUrl: './risk-config.html',
   styleUrl: './risk-config.css',
 })
@@ -32,6 +34,7 @@ export class RiskConfig implements OnInit {
   configurationId: string | null = null;
   submitted = false;
   savedRisk: RiskConfigurationResponse | null = null;
+  suggestedNotice: string | null = null;
 
   riskForm = new FormGroup({
     stopLossPercentage: new FormControl<number | null>(null, [Validators.required, percentageValidator]),
@@ -41,6 +44,34 @@ export class RiskConfig implements OnInit {
 
   ngOnInit(): void {
     this.configurationId = this.route.snapshot.paramMap.get('configurationId');
+    this.applyPendingRiskChange();
+  }
+
+  /** A risk value the student confirmed in the chat (guided mode). The student still reviews and saves it. */
+  private applyPendingRiskChange(): void {
+    const controls = {
+      stop_loss_percentage: 'stopLossPercentage',
+      max_position_size: 'maxPositionSize',
+      max_drawdown: 'maxDrawdown',
+    } as const;
+
+    try {
+      const raw = sessionStorage.getItem(PENDING_RISK_CHANGE_KEY);
+      if (!raw) return;
+      sessionStorage.removeItem(PENDING_RISK_CHANGE_KEY);
+
+      const pending = JSON.parse(raw) as { parameter: keyof typeof controls; label: string; value: number; createdAt: number };
+      const thirtyMinutes = 30 * 60 * 1000;
+      if (Date.now() - pending.createdAt > thirtyMinutes) return;
+
+      const control = controls[pending.parameter];
+      if (!control || typeof pending.value !== 'number') return;
+
+      this.riskForm.controls[control].setValue(pending.value);
+      this.suggestedNotice = `Suggested by the assistant: ${pending.label} at ${pending.value}%. Review it and fill in the other limits.`;
+    } catch {
+      // Storage unavailable or malformed value: nothing to prefill.
+    }
   }
 
   onSubmit() {

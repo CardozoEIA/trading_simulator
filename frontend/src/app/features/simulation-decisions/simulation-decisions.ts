@@ -12,10 +12,12 @@ import { ConfigurationSummaryResponse } from '../../models/configuration-summary
 import { EquityChart } from '../../shared/equity-chart/equity-chart';
 import { ChartHighlight } from '../../shared/equity-chart/equity-chart';
 import { Highlight, HighlightKind, SimulationInsights } from '../../models/insights.model';
+import { SimulationChat } from '../simulation-chat/simulation-chat';
+import { HelpHint } from '../../shared/help-hint/help-hint';
 
 @Component({
   selector: 'app-simulation-decisions',
-  imports: [RouterLink, DecimalPipe, EquityChart],
+  imports: [RouterLink, DecimalPipe, EquityChart, SimulationChat, HelpHint],
   templateUrl: './simulation-decisions.html',
   styleUrl: './simulation-decisions.css',
 })
@@ -177,6 +179,15 @@ export class SimulationDecisions implements OnInit, OnDestroy {
 
   get isOpenPosition(): boolean {
     return this.trades.length > 0 && this.trades[this.trades.length - 1].type === 'BUY';
+  }
+
+  get benchmarkDeltaPct(): number | null {
+    if (!this.summary?.benchmark) return null;
+    return this.totalReturnPct - this.summary.benchmark.total_return_pct;
+  }
+
+  get beatBenchmark(): boolean {
+    return (this.benchmarkDeltaPct ?? 0) >= 0;
   }
 
   get unexecutedSignals(): number {

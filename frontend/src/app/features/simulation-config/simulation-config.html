@@ -1,7 +1,5 @@
 <div class="simulation-configuration-container">
-    <app-step-indicator
-        [steps]="['Asset, Capital & Strategy', 'Risk', 'Confirm']"
-        [currentStep]="1">
+    <app-step-indicator [steps]="['Asset, Capital & Strategy', 'Risk', 'Confirm']" [currentStep]="1">
     </app-step-indicator>
 
     <h1>Simulation configuration</h1>
@@ -11,49 +9,51 @@
         <select id="asset" formControlName="asset">
             <option value="" disabled>Select an asset</option>
             @for (asset of assets; track asset.symbol) {
-                <option [value]="asset.symbol">{{ asset.name }}</option>
+            <option [value]="asset.symbol">{{ asset.name }}</option>
             }
         </select>
         @if (simConfigForm.get('asset')?.invalid && submitted) {
-            <p class="error-message">Please select an asset</p>
+        <p class="error-message">Please select an asset</p>
         }
 
-        <label for="initialCapital">Initial capital (USD)</label>
+        <div style="display:flex;align-items:center;gap:8px"><label for="initialCapital">Initial capital
+                (USD)</label><app-help-hint topic="initialCapital" /></div>
         <input id="initialCapital" type="number" formControlName="initialCapital"
-               [class.invalid]="simConfigForm.get('initialCapital')?.invalid && submitted">
+            [class.invalid]="simConfigForm.get('initialCapital')?.invalid && submitted">
         @if (simConfigForm.get('initialCapital')?.invalid && submitted) {
-            <p class="error-message">Enter a valid initial capital</p>
+        <p class="error-message">Enter a valid initial capital</p>
         }
 
         <label for="startDate">Start date</label>
         <input id="startDate" type="date" formControlName="startDate">
         @if (simConfigForm.get('startDate')?.invalid && submitted) {
-            <p class="error-message">Start date is required</p>
+        <p class="error-message">Start date is required</p>
         }
 
         <label for="endDate">End date</label>
         <input id="endDate" type="date" formControlName="endDate">
         @if (simConfigForm.get('endDate')?.invalid && submitted) {
-            <p class="error-message">End date is required</p>
+        <p class="error-message">End date is required</p>
         }
 
         @if (simConfigForm.errors?.['dateRangeInvalid'] && submitted) {
-            <p class="error-message">Start date must be before end date</p>
+        <p class="error-message">Start date must be before end date</p>
         }
 
-        <label>Strategies</label>
+        <div style="display:flex;align-items:center;gap:8px"><label>Strategies</label><app-help-hint
+                topic="strategies" /></div>
         <p class="field-hint">Select one or more. If several are selected, their signals are combined.</p>
         <div class="strategy-list" formArrayName="strategies">
             @for (strategy of strategies; track strategy.code; let i = $index) {
-                <label class="strategy-checkbox">
-                    <input type="checkbox" [formControlName]="i">
-                    <span class="strategy-name">{{ strategy.name }}</span>
-                    <span class="strategy-description">{{ strategy.description }}</span>
-                </label>
+            <label class="strategy-checkbox">
+                <input type="checkbox" [formControlName]="i">
+                <span class="strategy-name">{{ strategy.name }}</span>
+                <span class="strategy-description">{{ strategy.description }}</span>
+            </label>
             }
         </div>
         @if (strategiesArray.errors?.['noStrategySelected'] && submitted) {
-            <p class="error-message">Select at least one strategy</p>
+        <p class="error-message">Select at least one strategy</p>
         }
 
         <button type="submit">Configure simulation</button>
@@ -62,16 +62,16 @@
     </form>
 
     @if (savedConfig) {
-        <div class="saved-config">
-            <h2>Saved configuration</h2>
-            <ul>
+    <div class="saved-config">
+        <h2>Saved configuration</h2>
+        <ul>
             <li><strong>Asset:</strong> {{ savedConfig.asset }}</li>
             <li><strong>Capital:</strong> ${{ savedConfig.initial_capital }}</li>
             <li><strong>Strategies:</strong> {{ savedConfig.strategies.join(', ') }}</li>
             <li><strong>From:</strong> {{ savedConfig.start_date }}</li>
             <li><strong>To:</strong> {{ savedConfig.end_date }}</li>
             <li><strong>Available records:</strong> {{ savedConfig.records }}</li>
-            </ul>
-        </div>
+        </ul>
+    </div>
     }
 </div>

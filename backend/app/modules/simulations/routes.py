@@ -12,29 +12,24 @@ from app.modules.simulations.schema import (
 from app.modules.simulations.service import (
     start_simulation,
     get_simulation_status,
-    get_full_configuration,
+    build_configuration_summary,
     get_simulation_history
 )
 from app.modules.insights.service import mark_pending, on_simulation_finished
 
 logger = logging.getLogger(__name__)
 
-
-router = APIRouter(
-    prefix="/simulations",
-    tags=["Simulations"]
-)
+router = APIRouter(prefix="/simulations", tags=["Simulations"])
 
 
 @router.get(
     "/configuration/{configuration_id}/summary",
-    response_model=ConfigurationSummaryResponse
+    response_model=ConfigurationSummaryResponse,
 )
 def get_configuration_summary(
-    configuration_id: str,
-    current_user=Depends(get_current_user)
+    configuration_id: str, current_user=Depends(get_current_user)
 ):
-    return get_full_configuration(configuration_id, current_user.id)
+    return build_configuration_summary(configuration_id, current_user.id)
 
 
 @router.post("/start", response_model=SimulationResponse)
