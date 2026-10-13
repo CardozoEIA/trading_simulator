@@ -12,10 +12,12 @@ import { ConfigurationSummaryResponse } from '../../models/configuration-summary
 import { EquityChart } from '../../shared/equity-chart/equity-chart';
 import { ChartHighlight } from '../../shared/equity-chart/equity-chart';
 import { Highlight, HighlightKind, SimulationInsights } from '../../models/insights.model';
+import { SimulationChat } from '../simulation-chat/simulation-chat';
+import { HelpHint } from '../../shared/help-hint/help-hint';
 
 @Component({
   selector: 'app-simulation-decisions',
-  imports: [RouterLink, DecimalPipe, EquityChart],
+  imports: [RouterLink, DecimalPipe, EquityChart, SimulationChat, HelpHint],
   templateUrl: './simulation-decisions.html',
   styleUrl: './simulation-decisions.css',
 })

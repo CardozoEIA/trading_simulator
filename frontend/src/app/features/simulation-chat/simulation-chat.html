@@ -1,0 +1,84 @@
+<section class="chat" aria-label="Guided mode">
+  @if (!active()) {
+    <div class="chat-intro">
+      <p>
+        Guided mode lets you talk with the agent about this simulation. It remembers the
+        conversation, even if you come back later.
+      </p>
+      <button type="button" class="primary" (click)="active.set(true)">Start guided mode</button>
+    </div>
+  } @else {
+    <div class="chat-toolbar">
+      <span class="chat-status">Guided mode</span>
+      <div class="chat-toolbar-actions">
+        @if (messages().length) {
+          <button type="button" class="link" (click)="clearConversation()" [disabled]="sending()">
+            Clear conversation
+          </button>
+        }
+        <button type="button" class="link" (click)="active.set(false)">Hide</button>
+      </div>
+    </div>
+
+    <div class="chat-messages" #scrollBox role="log" aria-live="polite">
+      @if (messages().length === 0) {
+        <p class="chat-empty">
+          Ask why a decision was made, what an indicator means, or try one of these:
+        </p>
+      }
+
+      @for (message of messages(); track $index) {
+        <div
+          class="bubble"
+          [class.user]="message.role === 'user'"
+          [class.error]="message.isError"
+          [class.streaming]="message.streaming && message.text"
+        >
+          @if (message.streaming && !message.text) {
+            <span class="thinking">Thinking…</span>
+          } @else {
+            {{ message.text }}
+          }
+        </div>
+      }
+    </div>
+
+    @if (proposal(); as p) {
+      <div class="proposal" role="group" aria-label="Suggested change">
+        <p>
+          Open a new simulation setup with the <strong>{{ p.label }}</strong> at
+          <strong>{{ p.suggested }}%</strong>@if (p.current !== null) { (it is {{ p.current }}% now)}?
+        </p>
+        <p class="proposal-note">
+          Nothing changes until you confirm, and this simulation stays as it is.
+        </p>
+        <div class="proposal-actions">
+          <button type="button" class="primary" (click)="confirmProposal()">Confirm</button>
+          <button type="button" class="secondary" (click)="proposal.set(null)">Dismiss</button>
+        </div>
+      </div>
+    }
+
+    @if (!sending() && suggestions().length) {
+      <div class="chat-suggestions">
+        @for (suggestion of suggestions(); track suggestion) {
+          <button type="button" class="chip" (click)="send(suggestion)">{{ suggestion }}</button>
+        }
+      </div>
+    }
+
+    <form class="chat-input" (submit)="$event.preventDefault(); send()">
+      <label class="sr-only" for="chat-message">Your question</label>
+      <input
+        id="chat-message"
+        type="text"
+        placeholder="e.g. Why did it sell on day 16?"
+        [maxlength]="maxLength"
+        [(ngModel)]="draft"
+        name="message"
+        autocomplete="off"
+      />
+      <button type="submit" class="primary" [disabled]="sending() || !draft().trim()">Send</button>
+    </form>
+  }
+</section>

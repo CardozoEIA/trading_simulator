@@ -91,20 +91,20 @@
       <span class="stat-value">{{ metrics.total_return_pct | number:'1.2-2' }}%</span>
     </div>
     <div class="stat-card">
-      <span class="stat-label">Sharpe ratio</span>
+      <span class="stat-label">Sharpe ratio <app-help-hint topic="sharpeRatio" /></span>
       <span class="stat-value">{{ metrics.sharpe_ratio | number:'1.2-2' }}</span>
     </div>
     <div class="stat-card">
-      <span class="stat-label">Max drawdown</span>
+      <span class="stat-label">Max drawdown <app-help-hint topic="drawdownResult" /></span>
       <span class="stat-value">{{ metrics.max_drawdown_pct | number:'1.2-2' }}%</span>
     </div>
     <div class="stat-card">
-      <span class="stat-label">Win rate</span>
+      <span class="stat-label">Win rate <app-help-hint topic="winRate" /></span>
       <span class="stat-value">{{ metrics.total_trades ? (metrics.win_rate | number:'1.0-0') + '%' : '—' }}</span>
     </div>
     <div class="stat-card">
-      <span class="stat-label">Profit factor</span>
-      <span class="stat-value">{{ metrics.total_trades ? (metrics.profit_factor !== null ? (metrics.profit_factor |
+      <span class="stat-label">Profit factor <app-help-hint topic="profitFactor" /></span> <span class="stat-value">{{
+        metrics.total_trades ? (metrics.profit_factor !== null ? (metrics.profit_factor |
         number:'1.2-2') : '∞') : '—' }}</span>
     </div>
     <div class="stat-card">
@@ -236,6 +236,11 @@
           }
         </tbody>
       </table>
+      }
+
+      @if (simulationId) {
+      <h2>Ask about this simulation</h2>
+      <app-simulation-chat [simulationId]="simulationId" />
       }
 
       <div class="back-links">

@@ -8,6 +8,7 @@ import { Alert } from '../../shared/alert';
 import { Router } from '@angular/router';
 import { BacktestConfigurationResponse } from '../../models/backtest-configuration-response.model';
 import { StepIndicator } from '../../shared/step-indicator/step-indicator';
+import { HelpHint } from '../../shared/help-hint/help-hint';
 
 function dateRangeValidator(group: AbstractControl): ValidationErrors | null {
   const start = group.get('startDate')?.value;
@@ -26,7 +27,7 @@ function atLeastOneStrategyValidator(control: AbstractControl): ValidationErrors
 
 @Component({
   selector: 'app-simulation-config',
-  imports: [ReactiveFormsModule, StepIndicator],
+  imports: [ReactiveFormsModule, StepIndicator, HelpHint],
   templateUrl: './simulation-config.html',
   styleUrl: './simulation-config.css',
 })
