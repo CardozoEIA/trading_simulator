@@ -22,7 +22,14 @@ def _after_grade(state: KnowledgeState) -> str:
     return "generate" if state["sufficient"] else "refuse"
 
 
-def build_knowledge_graph(llm=None, grader_llm=None, embed_query=None, search_chunks=None, save_turn=None):
+def build_knowledge_graph(
+    llm=None,
+    grader_llm=None,
+    embed_query=None,
+    search_chunks=None,
+    save_turn=None,
+    rewrite_llm=None,
+):
     """Dependencies are injectable so the tests run without Ollama or Supabase."""
     if embed_query is None:
         from app.vectorstore.embeddings import embed_query as embed_query
@@ -33,8 +40,15 @@ def build_knowledge_graph(llm=None, grader_llm=None, embed_query=None, search_ch
 
     llm = llm or get_chat_model()
     grader_llm = grader_llm or llm
+    rewrite_llm = rewrite_llm or grader_llm
 
-    nodes = make_nodes(llm, grader_llm, embed_query, search_chunks, save_turn)
+    nodes = make_nodes(
+    llm,
+    grader_llm,
+    embed_query,
+    search_chunks,
+    save_turn,
+    rewrite_llm=rewrite_llm,)
 
     graph = StateGraph(KnowledgeState)
 

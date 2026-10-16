@@ -18,6 +18,13 @@ IN_SCOPE = [
     "When is the RSI considered overbought?",
     "What is look-ahead bias?",
     "What does the win rate tell me?",
+    # Spanish and reworded versions of the same topics
+    "¿Qué mide el ratio de Sharpe?",
+    "Explain RSI like I'm five",
+    "¿Qué es un stop-loss?",
+    "¿Qué es el drawdown máximo?",
+    "What does an RSI above 70 mean?",
+    "Why shouldn't a simulation peek at future prices?",
 ]
 OUT_OF_SCOPE = [
     "What is the best recipe for sushi?",
@@ -26,6 +33,10 @@ OUT_OF_SCOPE = [
     "How do I buy Bitcoin?",
     "What will Tesla stock do next week?",
     "What is the capital of France?",
+    "How much money did Apple make last year?",
+    "¿Cuál es la receta del arroz con pollo?",
+    "¿Quién ganó el último mundial de fútbol?",
+    "What is a P/E ratio?",
 ]
 
 

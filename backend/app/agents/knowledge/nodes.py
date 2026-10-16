@@ -10,18 +10,21 @@ Hallucination control (the rubric asks for at least two strategies; here there a
   4. explicit refusal with a fixed text         -> refuse() / generate()
   5. sources shown with every answer            -> generate()
 """
+
 import logging
 import re
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.agents.knowledge.prompts import (
+    ANSWER_REMINDER,
     ANSWER_SYSTEM_PROMPT,
     GRADER_SYSTEM_PROMPT,
     GREETING_TEXT,
     INSUFFICIENT_TOKEN,
     INVALID_TEXT,
     REFUSAL_TEXT,
+    REWRITE_SYSTEM_PROMPT,
 )
 from app.agents.knowledge.state import KnowledgeState
 
@@ -33,10 +36,12 @@ logger = logging.getLogger(__name__)
 # look at the similarities of questions that SHOULD be answered vs. ones that should NOT,
 # and pick values that separate them. Write down what you saw: it goes in the technical report.
 # ---------------------------------------------------------------------------
-RETRIEVAL_THRESHOLD = 0.40   # chunks below this similarity are never even retrieved
-MIN_BEST_SIMILARITY = 0.55   # the BEST chunk must reach this, otherwise: refuse without asking the LLM
-TOP_K = 4                    # passages sent to the model
-USE_LLM_GRADER = True        # second opinion from the model (costs one extra call)
+RETRIEVAL_THRESHOLD = 0.45  # chunks below this similarity are never even retrieved
+MIN_BEST_SIMILARITY = (
+    0.60  # the BEST chunk must reach this, otherwise: refuse without asking the LLM
+)
+TOP_K = 4  # passages sent to the model
+USE_LLM_GRADER = False  # measured: the 7B grader falsely refused 2 of 3 valid questions, so it is off
 
 MAX_QUESTION_CHARS = 500
 GRADER_PASSAGES = 3
@@ -55,11 +60,32 @@ _GREETING = re.compile(
 _CITATION = re.compile(r"\[(\d+)\]")
 
 
+# Style requests ("like I'm five", "for beginners") invite a small model to invent analogies.
+# The answer is generated from the question WITHOUT them; the retrieval query already drops them too.
+_STYLE_REQUEST = re.compile(
+    r"\b(like|as if) (i'?m|i am|you('re| are) (talking|explaining) to) (a |an )?(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|child|kid|toddler|beginner|novice|noob)( years?[ -]old)?\b|"
+    r"\beli5\b|"
+    r"\b(for|to) (a |an )?(\d+|five|six|seven|eight|ten)?[ -]?(years?[ -]old|beginners?|children|child|kids?|toddlers?|dummies|novices?)\b|"
+    r"\bcomo si (fuera|tuviera|tuviese) (un )?(ni[ñn]o|\d+ a[ñn]os|cinco a[ñn]os)\b|"
+    r"\bpara (principiantes|ni[ñn]os|un ni[ñn]o)\b",
+    re.IGNORECASE,
+)
+
+
+def _plain_question(question: str) -> str:
+    """The question without style requests; falls back to the original if nothing is left."""
+    plain = re.sub(r"\s+", " ", _STYLE_REQUEST.sub("", question))
+    plain = re.sub(r"\s+([?!.,;])", r"\1", plain).strip(" ,.;")
+    return plain if len(plain) >= 2 else question
+
+
 def _format_context(chunks: list[dict]) -> str:
     lines = []
 
     for number, chunk in enumerate(chunks, start=1):
-        where = chunk["filename"] + (f", p. {chunk['page']}" if chunk.get("page") else "")
+        where = chunk["filename"] + (
+            f", p. {chunk['page']}" if chunk.get("page") else ""
+        )
         lines.append(f"[{number}] ({where})\n{chunk['content']}")
 
     return "\n\n".join(lines)
@@ -78,26 +104,87 @@ def _to_source(chunk: dict) -> dict:
     }
 
 
-def make_nodes(llm, grader_llm, embed_query, search_chunks, save_turn):
+def make_nodes(
+    llm,
+    grader_llm,
+    embed_query,
+    search_chunks,
+    save_turn,
+    rewrite_llm=None,
+):
+    rewrite_llm = rewrite_llm or grader_llm
+
     # Node 1 -------------------------------------------------------------
     def validate_intent(state: KnowledgeState) -> KnowledgeState:
         """Cheap, deterministic checks BEFORE spending any model call."""
         question = state["question"].strip()
 
-        if len(question) < 2 or len(question) > MAX_QUESTION_CHARS or _INJECTION.search(question):
-            return {"intent": "invalid", "answer": INVALID_TEXT, "refused": True, "sources": []}
+        if (
+            len(question) < 2
+            or len(question) > MAX_QUESTION_CHARS
+            or _INJECTION.search(question)
+        ):
+            return {
+                "intent": "invalid",
+                "answer": INVALID_TEXT,
+                "refused": True,
+                "sources": [],
+            }
 
         if _GREETING.match(question):
-            return {"intent": "greeting", "answer": GREETING_TEXT, "refused": False, "sources": []}
+            return {
+                "intent": "greeting",
+                "answer": GREETING_TEXT,
+                "refused": False,
+                "sources": [],
+            }
 
         return {"intent": "question"}
 
+    def rewrite_query(question: str) -> str:
+        """Search query = the question without style words, in English. Falls back to the original."""
+        try:
+            query = rewrite_llm.invoke(
+                [
+                    SystemMessage(content=REWRITE_SYSTEM_PROMPT),
+                    HumanMessage(content=question),
+                ]
+            ).content.strip()
+        except Exception:
+            logger.warning(
+                "Query rewrite failed, using the original question", exc_info=True
+            )
+            return question
+
+        query = query.strip().strip("\"'").strip()
+
+        if not query or len(query) > 200 or "\n" in query:
+            return question
+
+        logger.info(
+            "Query rewrite: %r -> %r",
+            question,
+            query,
+        )
+        return query
+
     # Node 2 -------------------------------------------------------------
     def retrieve(state: KnowledgeState) -> KnowledgeState:
-        vector = embed_query(state["question"])
-        chunks = search_chunks(vector, state["user_id"], RETRIEVAL_THRESHOLD, TOP_K)
+        query = rewrite_query(state["question"])
 
-        return {"chunks": chunks}
+        vector = embed_query(query)
+
+        chunks = search_chunks(
+            vector,
+            state["user_id"],
+            RETRIEVAL_THRESHOLD,
+            TOP_K,
+        )
+
+        return {
+            "chunks": chunks,
+            "search_query": query,
+        }
 
     # Node 3 -------------------------------------------------------------
     def grade(state: KnowledgeState) -> KnowledgeState:
@@ -118,12 +205,19 @@ def make_nodes(llm, grader_llm, embed_query, search_chunks, save_turn):
             reply = grader_llm.invoke(
                 [
                     SystemMessage(content=GRADER_SYSTEM_PROMPT),
-                    HumanMessage(content=f"Question: {state['question']}\n\nPassages:\n{passages}"),
+                    HumanMessage(
+                        content=f"Question: {state['question']}\n"
+                        f"Same question in English: {state['search_query']}\n\n"
+                        f"Passages:\n{passages}"
+                    ),
                 ]
             ).content
         except Exception:
             # The numeric filter already passed: do not block the answer because the grader failed.
-            logger.warning("Sufficiency grader failed, trusting the similarity filter", exc_info=True)
+            logger.warning(
+                "Sufficiency grader failed, trusting the similarity filter",
+                exc_info=True,
+            )
             return {"sufficient": True}
 
         return {"sufficient": reply.strip().upper().startswith("YES")}
@@ -136,7 +230,7 @@ def make_nodes(llm, grader_llm, embed_query, search_chunks, save_turn):
             [
                 SystemMessage(content=ANSWER_SYSTEM_PROMPT),
                 HumanMessage(
-                    content=f"Context:\n{_format_context(chunks)}\n\nQuestion: {state['question']}"
+                    content=f"Context:\n{_format_context(chunks)}\n\nQuestion: {_plain_question(state['question'])}\n\n{ANSWER_REMINDER}"
                 ),
             ]
         ).content.strip()
@@ -149,7 +243,11 @@ def make_nodes(llm, grader_llm, embed_query, search_chunks, save_turn):
         cited = {int(n) for n in _CITATION.findall(reply)}
         used = [c for i, c in enumerate(chunks, start=1) if i in cited] or chunks
 
-        return {"answer": reply, "refused": False, "sources": [_to_source(c) for c in used]}
+        return {
+            "answer": reply,
+            "refused": False,
+            "sources": [_to_source(c) for c in used],
+        }
 
     # Node 4b ------------------------------------------------------------
     def refuse(state: KnowledgeState) -> KnowledgeState:

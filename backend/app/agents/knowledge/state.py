@@ -10,3 +10,4 @@ class KnowledgeState(TypedDict, total=False):
     answer: str
     refused: bool        # True when the agent declined to answer
     sources: list[dict]  # passages the answer is based on
+    search_query: str

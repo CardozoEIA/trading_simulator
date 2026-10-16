@@ -1,4 +1,5 @@
 """Conversation history of the knowledge-base chat."""
+
 import logging
 import uuid
 
@@ -9,12 +10,21 @@ logger = logging.getLogger(__name__)
 TABLE = "kb_messages"
 
 
-def save_turn(user_id: str, question: str, answer: str, refused: bool, sources: list[dict]) -> None:
+def save_turn(
+    user_id: str, question: str, answer: str, refused: bool, sources: list[dict]
+) -> None:
     turn_id = str(uuid.uuid4())
 
     supabase.table(TABLE).insert(
         [
-            {"user_id": user_id, "turn_id": turn_id, "role": "user", "content": question},
+            {
+                "user_id": user_id,
+                "turn_id": turn_id,
+                "role": "user",
+                "content": question,
+                "refused": False,
+                "sources": [],
+            },
             {
                 "user_id": user_id,
                 "turn_id": turn_id,
