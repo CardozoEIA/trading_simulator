@@ -15,11 +15,17 @@ IN_SCOPE = [
     "What does the Sharpe ratio measure?",
     "How does a stop-loss work?",
     "What is maximum drawdown?",
+    "When is the RSI considered overbought?",
+    "What is look-ahead bias?",
+    "What does the win rate tell me?",
 ]
 OUT_OF_SCOPE = [
     "What is the best recipe for sushi?",
     "Who won the 2018 football world cup?",
     "How do I change a car tire?",
+    "How do I buy Bitcoin?",
+    "What will Tesla stock do next week?",
+    "What is the capital of France?",
 ]
 
 
