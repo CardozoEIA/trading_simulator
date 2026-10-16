@@ -6,8 +6,8 @@ import {
   createChart, ColorType, CrosshairMode, LineStyle,
   IChartApi, ISeriesApi, IPriceLine, MouseEventParams, SeriesMarker, Time
 } from 'lightweight-charts';
-import { EquityPoint } from '../../models/equity-point.model';
-import { Trade } from '../../models/trade.model';
+import { EquityPoint } from '@models/analysis/equity-point.model';
+import { Trade } from '@models/analysis/trade.model';
 
 /** Agent highlight drawn on the curve (e.g. the peak and low of the largest drop). */
 export interface ChartHighlight {

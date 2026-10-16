@@ -1,10 +1,10 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Auth } from '../../core/auth';
-import { Alert } from '../../shared/alert';
-import { Simulations } from '../../core/simulations';
-import { SimulationHistoryItem } from '../../models/simulation-history.model';
+import { Auth } from '@core/auth/auth';
+import { Alert } from '@shared/ui/alert/alert';
+import { Simulations } from '@core/api/simulations';
+import { SimulationHistoryItem } from '@models/simulation/simulation-history.model';
 
 @Component({
   selector: 'app-dashboard',

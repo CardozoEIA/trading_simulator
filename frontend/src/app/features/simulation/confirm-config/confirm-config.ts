@@ -1,9 +1,9 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Simulations } from '../../core/simulations';
-import { Alert } from '../../shared/alert';
-import { StepIndicator } from '../../shared/step-indicator/step-indicator';
-import { ConfigurationSummaryResponse } from '../../models/configuration-summary-response.model';
+import { Simulations } from '@core/api/simulations';
+import { Alert } from '@shared/ui/alert/alert';
+import { StepIndicator } from '@shared/ui/step-indicator/step-indicator';
+import { ConfigurationSummaryResponse } from '@models/simulation/configuration-summary-response.model';
 
 @Component({
   selector: 'app-confirm-config',

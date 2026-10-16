@@ -1,9 +1,9 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Simulations } from '../../core/simulations';
-import { Alert } from '../../shared/alert';
-import { SimulationHistoryItem } from '../../models/simulation-history.model';
+import { Simulations } from '@core/api/simulations';
+import { Alert } from '@shared/ui/alert/alert';
+import { SimulationHistoryItem } from '@models/simulation/simulation-history.model';
 
 @Component({
   selector: 'app-simulation-history',

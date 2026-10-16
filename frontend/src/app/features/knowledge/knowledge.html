@@ -1,0 +1,131 @@
+<div class="kb">
+  <header class="kb-header">
+    <span class="brand">Market Navigator AI</span>
+    <nav class="kb-nav">
+      <a routerLink="/dashboard" class="nav-link">Dashboard</a>
+      <button type="button" (click)="onLogout()" class="logout-button">Log out</button>
+    </nav>
+  </header>
+
+  <h1 class="kb-title">Knowledge base</h1>
+  <p class="kb-lead">
+    Upload your own notes, articles or data. The agent answers only from what is in these
+    documents and tells you when it does not have enough information.
+  </p>
+
+  <div class="kb-grid">
+    <!-- Documents -->
+    <section class="panel docs" aria-label="Documents">
+      <h2>Your documents</h2>
+
+      <div
+        class="dropzone"
+        [class.dragging]="dragging()"
+        (dragover)="onDragOver($event)"
+        (dragleave)="dragging.set(false)"
+        (drop)="onDrop($event)"
+      >
+        <input #fileInput type="file" class="sr-only" [accept]="accept" (change)="onFilesSelected($event)" />
+        @if (uploading()) {
+          <p class="drop-text">Processing the document… this can take a minute.</p>
+        } @else {
+          <p class="drop-text">Drag a file here or</p>
+          <button type="button" class="primary" (click)="openPicker()">Choose a file</button>
+          <p class="drop-hint">PDF, TXT, MD, CSV or DOCX. Up to 10 MB.</p>
+        }
+      </div>
+
+      @if (loadingDocuments()) {
+        <p class="muted">Loading your documents…</p>
+      } @else if (documents().length === 0) {
+        <p class="muted">No documents yet. Upload one to start asking questions about it.</p>
+      } @else {
+        <ul class="doc-list">
+          @for (doc of documents(); track doc.id) {
+            <li class="doc">
+              <div class="doc-main">
+                <span class="doc-name" [title]="doc.filename">{{ doc.filename }}</span>
+                <span class="doc-meta">
+                  {{ doc.file_type.toUpperCase() }} · {{ formatSize(doc.size_bytes) }} ·
+                  {{ doc.created_at | date: 'MMM d, y' }}
+                  @if (doc.status === 'ready') { · {{ doc.chunk_count }} fragments }
+                </span>
+                @if (doc.status === 'failed' && doc.error) {
+                  <span class="doc-error">{{ doc.error }}</span>
+                }
+              </div>
+              <span class="pill" [class.ready]="doc.status === 'ready'" [class.failed]="doc.status === 'failed'">
+                {{ doc.status === 'ready' ? 'Ready' : doc.status === 'failed' ? 'Failed' : 'Processing' }}
+              </span>
+              <button type="button" class="icon-button" (click)="removeDocument(doc)" [attr.aria-label]="'Delete ' + doc.filename">
+                Delete
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <!-- Chat -->
+    <section class="panel chat" aria-label="Ask the agent">
+      <div class="chat-head">
+        <h2>Ask the agent</h2>
+        @if (messages().length) {
+          <button type="button" class="link" (click)="clearConversation()" [disabled]="sending()">
+            Clear conversation
+          </button>
+        }
+      </div>
+
+      <div class="chat-messages" #scrollBox role="log" aria-live="polite">
+        @if (messages().length === 0) {
+          <p class="muted">Ask about your documents, or try one of these:</p>
+          <div class="chips">
+            @for (suggestion of suggestions; track suggestion) {
+              <button type="button" class="chip" (click)="send(suggestion)">{{ suggestion }}</button>
+            }
+          </div>
+        }
+
+        @for (message of messages(); track $index) {
+          <div
+            class="bubble"
+            [class.user]="message.role === 'user'"
+            [class.refused]="message.refused"
+            [class.error]="message.isError"
+          >
+            @if (message.pending) {
+              <span class="thinking">Searching your documents…</span>
+            } @else {
+              <p class="bubble-text">{{ message.text }}</p>
+
+              @if (message.sources?.length) {
+                <div class="sources">
+                  <span class="sources-label">Sources</span>
+                  @for (source of message.sources; track source.document_id + '-' + source.chunk_index) {
+                    <span class="source" [title]="source.snippet">{{ sourceLabel(source) }}</span>
+                  }
+                </div>
+              }
+            }
+          </div>
+        }
+      </div>
+
+      <form class="chat-input" (submit)="$event.preventDefault(); send()">
+        <label class="sr-only" for="kb-message">Your question</label>
+        <input
+          id="kb-message"
+          type="text"
+          placeholder="Ask a question about your documents"
+          [maxlength]="maxLength"
+          [ngModel]="draft()"
+          (ngModelChange)="draft.set($event)"
+          name="message"
+          autocomplete="off"
+        />
+        <button type="submit" class="primary" [disabled]="sending() || !draft().trim()">Send</button>
+      </form>
+    </section>
+  </div>
+</div>

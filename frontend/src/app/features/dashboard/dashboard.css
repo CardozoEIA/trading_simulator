@@ -333,3 +333,6 @@ a:focus-visible, button:focus-visible {
   .latest-return { font-size: 3.2rem; }
   .steps { grid-template-columns: 1fr; }
 }
+.dash-nav { display: flex; align-items: center; gap: 1.25rem; }
+.nav-link { color: var(--golden-accent); text-decoration: none; font-weight: 500; }
+.nav-link:hover { text-decoration: underline; }

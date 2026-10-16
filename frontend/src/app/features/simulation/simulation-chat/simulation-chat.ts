@@ -3,8 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
-import { ChatService } from '../../core/chat.service';
-import { ChatStreamEvent, PENDING_RISK_CHANGE_KEY, ProposedChange } from '../../models/chat.model';
+import { ChatService } from '@core/api/chat.service';
+import { ChatStreamEvent, PENDING_RISK_CHANGE_KEY, ProposedChange } from '@models/agent/chat.model';
 
 interface ChatMessage {
   role: 'user' | 'assistant';

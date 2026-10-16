@@ -3,9 +3,9 @@ import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 
-import { environment } from '../../environments/environment';
-import { ChatHistory, ChatResponse, ChatStreamEvent } from '../models/chat.model';
-import { Auth } from './auth';
+import { environment } from '../../../environments/environment';
+import { ChatHistory, ChatResponse, ChatStreamEvent } from '@models/agent/chat.model';
+import { Auth } from '../auth/auth';
 
 const STREAM_TIMEOUT_MS = 120_000;
 const GENERIC_ERROR = 'Something went wrong. Please try again.';

@@ -2,14 +2,15 @@ import { Routes } from '@angular/router';
 import { Login } from './features/auth/login/login';
 import { Register } from './features/auth/register/register';
 import { Dashboard } from './features/dashboard/dashboard';
-import { SimulationConfig } from './features/simulation-config/simulation-config';
-import { authGuard } from './core/auth-guard';
-import { guestGuard } from './core/guest-guard';
-import { RiskConfig } from './features/risk-config/risk-config';
-import { ConfirmConfig } from './features/confirm-config/confirm-config';
-import { SimulationStatus } from './features/simulation-status/simulation-status';
-import { SimulationDecisions } from './features/simulation-decisions/simulation-decisions';
-import { SimulationHistory } from './features/simulation-history/simulation-history';
+import { SimulationConfig } from './features/simulation/simulation-config/simulation-config';
+import { authGuard } from '@core/auth/auth-guard';
+import { guestGuard } from '@core/auth/guest-guard';
+import { RiskConfig } from './features/simulation/risk-config/risk-config';
+import { ConfirmConfig } from './features/simulation/confirm-config/confirm-config';
+import { SimulationStatus } from './features/simulation/simulation-status/simulation-status';
+import { SimulationDecisions } from './features/simulation/simulation-decisions/simulation-decisions';
+import { SimulationHistory } from './features/simulation/simulation-history/simulation-history';
+import { Knowledge } from './features/knowledge/knowledge';
 
 
 export const routes: Routes = [
@@ -22,4 +23,5 @@ export const routes: Routes = [
     { path: 'simulation-status/:simulationId', component: SimulationStatus, canActivate: [authGuard] },
     { path: 'simulation-decisions/:simulationId', component: SimulationDecisions, canActivate: [authGuard] },
     { path: 'history', component: SimulationHistory, canActivate: [authGuard] },
+    { path: 'knowledge', component: Knowledge, canActivate: [authGuard] },
 ];

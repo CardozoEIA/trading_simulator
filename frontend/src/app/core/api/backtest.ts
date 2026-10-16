@@ -1,9 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Asset } from '../models/asset.model';
-import { Strategy } from '../models/strategy.model';
-import { BacktestConfigurationResponse } from '../models/backtest-configuration-response.model';
-import { environment } from '../../environments/environment';
+import { Asset } from '@models/simulation/asset.model';
+import { Strategy } from '@models/simulation/strategy.model';
+import { BacktestConfigurationResponse } from '@models/simulation/backtest-configuration-response.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',

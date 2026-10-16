@@ -1,19 +1,19 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
-import { Simulations } from '../../core/simulations';
-import { Alert } from '../../shared/alert';
-import { Decision } from '../../models/decision.model';
-import { Trade } from '../../models/trade.model';
-import { EquityPoint } from '../../models/equity-point.model';
-import { Signal } from '../../models/signal.model';
-import { SimulationMetrics } from '../../models/metrics.model';
-import { ConfigurationSummaryResponse } from '../../models/configuration-summary-response.model';
-import { EquityChart } from '../../shared/equity-chart/equity-chart';
-import { ChartHighlight } from '../../shared/equity-chart/equity-chart';
-import { Highlight, HighlightKind, SimulationInsights } from '../../models/insights.model';
+import { Simulations } from '@core/api/simulations';
+import { Alert } from '@shared/ui/alert/alert';
+import { Decision } from '@models/analysis/decision.model';
+import { Trade } from '@models/analysis/trade.model';
+import { EquityPoint } from '@models/analysis/equity-point.model';
+import { Signal } from '@models/analysis/signal.model';
+import { SimulationMetrics } from '@models/analysis/metrics.model';
+import { ConfigurationSummaryResponse } from '@models/simulation/configuration-summary-response.model';
+import { EquityChart } from '@shared/charts/equity-chart/equity-chart';
+import { ChartHighlight } from '@shared/charts/equity-chart/equity-chart';
+import { Highlight, HighlightKind, SimulationInsights } from '@models/agent/insights.model';
 import { SimulationChat } from '../simulation-chat/simulation-chat';
-import { HelpHint } from '../../shared/help-hint/help-hint';
+import { HelpHint } from '@shared/ui/help-hint/help-hint';
 
 @Component({
   selector: 'app-simulation-decisions',

@@ -1,15 +1,15 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
-import { ConfigurationSummaryResponse } from '../models/configuration-summary-response.model';
-import { SimulationResponse } from '../models/simulation-response.model';
-import { Decision } from '../models/decision.model';
-import { Trade } from '../models/trade.model';
-import { EquityPoint } from '../models/equity-point.model';
-import { Signal } from '../models/signal.model';
-import { SimulationMetrics } from '../models/metrics.model';
-import { SimulationHistoryItem } from '../models/simulation-history.model';
-import { SimulationInsights } from '../models/insights.model';
+import { environment } from '../../../environments/environment';
+import { ConfigurationSummaryResponse } from '@models/simulation/configuration-summary-response.model';
+import { SimulationResponse } from '@models/simulation/simulation-response.model';
+import { Decision } from '@models/analysis/decision.model';
+import { Trade } from '@models/analysis/trade.model';
+import { EquityPoint } from '@models/analysis/equity-point.model';
+import { Signal } from '@models/analysis/signal.model';
+import { SimulationMetrics } from '@models/analysis/metrics.model';
+import { SimulationHistoryItem } from '@models/simulation/simulation-history.model';
+import { SimulationInsights } from '@models/agent/insights.model';
 
 @Injectable({
   providedIn: 'root',

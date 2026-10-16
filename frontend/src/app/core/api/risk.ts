@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
-import { RiskConfiguration } from '../models/risk-configuration.model';
+import { RiskConfiguration } from '@models/simulation/risk-configuration.model';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
-import { RiskConfigurationResponse } from '../models/risk-configuration-response.model';
+import { environment } from '../../../environments/environment';
+import { RiskConfigurationResponse } from '@models/simulation/risk-configuration-response.model';
 
 @Injectable({
   providedIn: 'root',

@@ -1,8 +1,8 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Simulations } from '../../core/simulations';
-import { Alert } from '../../shared/alert';
-import { SimulationResponse } from '../../models/simulation-response.model';
+import { Simulations } from '@core/api/simulations';
+import { Alert } from '@shared/ui/alert/alert';
+import { SimulationResponse } from '@models/simulation/simulation-response.model';
 
 @Component({
   selector: 'app-simulation-status',

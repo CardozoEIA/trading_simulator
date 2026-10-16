@@ -1,9 +1,9 @@
 import { Component, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
-import { Auth } from '../../../core/auth';
+import { Auth } from '@core/auth/auth';
 import { Router, RouterLink } from '@angular/router';
-import { Alert } from '../../../shared/alert';
+import { Alert } from '@shared/ui/alert/alert';
 @Component({
   selector: 'app-login',
   imports: [ ReactiveFormsModule, RouterLink ],

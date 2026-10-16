@@ -1,14 +1,14 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { Backtest } from '../../core/backtest';
-import { Asset } from '../../models/asset.model';
-import { Strategy } from '../../models/strategy.model';
+import { Backtest } from '@core/api/backtest';
+import { Asset } from '@models/simulation/asset.model';
+import { Strategy } from '@models/simulation/strategy.model';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FormGroup, FormControl, FormArray, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Alert } from '../../shared/alert';
+import { Alert } from '@shared/ui/alert/alert';
 import { Router } from '@angular/router';
-import { BacktestConfigurationResponse } from '../../models/backtest-configuration-response.model';
-import { StepIndicator } from '../../shared/step-indicator/step-indicator';
-import { HelpHint } from '../../shared/help-hint/help-hint';
+import { BacktestConfigurationResponse } from '@models/simulation/backtest-configuration-response.model';
+import { StepIndicator } from '@shared/ui/step-indicator/step-indicator';
+import { HelpHint } from '@shared/ui/help-hint/help-hint';
 
 function dateRangeValidator(group: AbstractControl): ValidationErrors | null {
   const start = group.get('startDate')?.value;

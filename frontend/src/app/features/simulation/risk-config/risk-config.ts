@@ -1,13 +1,13 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Risk } from '../../core/risk';
-import { Alert } from '../../shared/alert';
-import { StepIndicator } from '../../shared/step-indicator/step-indicator';
-import { RiskConfiguration } from '../../models/risk-configuration.model';
-import { RiskConfigurationResponse } from '../../models/risk-configuration-response.model';
-import { PENDING_RISK_CHANGE_KEY } from '../../models/chat.model';
-import { HelpHint } from '../../shared/help-hint/help-hint';
+import { Risk } from '@core/api/risk';
+import { Alert } from '@shared/ui/alert/alert';
+import { StepIndicator } from '@shared/ui/step-indicator/step-indicator';
+import { RiskConfiguration } from '@models/simulation/risk-configuration.model';
+import { RiskConfigurationResponse } from '@models/simulation/risk-configuration-response.model';
+import { PENDING_RISK_CHANGE_KEY } from '@models/agent/chat.model';
+import { HelpHint } from '@shared/ui/help-hint/help-hint';
 
 function percentageValidator(control: AbstractControl): ValidationErrors | null {
   const value = control.value;
