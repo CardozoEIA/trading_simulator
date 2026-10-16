@@ -2,9 +2,13 @@
 
 Validation happens BEFORE anything is stored: never trust the filename or the size the client says.
 """
+
 import io
 from dataclasses import dataclass
 from pathlib import PurePath
+from pypdf import PdfReader
+from docx import Document
+import csv
 
 ALLOWED_TYPES = ("pdf", "txt", "md", "csv", "docx")
 MAX_FILE_BYTES = 10 * 1024 * 1024  # 10 MB
@@ -35,13 +39,17 @@ def validate_upload(filename: str, size_bytes: int) -> str:
     extension = name.rsplit(".", 1)[-1].lower() if "." in name else ""
 
     if extension not in ALLOWED_TYPES:
-        raise UnsupportedFileError(f"Unsupported file type. Allowed: {', '.join(ALLOWED_TYPES)}")
+        raise UnsupportedFileError(
+            f"Unsupported file type. Allowed: {', '.join(ALLOWED_TYPES)}"
+        )
 
     if size_bytes == 0:
         raise UnsupportedFileError("The file is empty")
 
     if size_bytes > MAX_FILE_BYTES:
-        raise UnsupportedFileError(f"The file is larger than {MAX_FILE_BYTES // (1024 * 1024)} MB")
+        raise UnsupportedFileError(
+            f"The file is larger than {MAX_FILE_BYTES // (1024 * 1024)} MB"
+        )
 
     return extension
 
@@ -58,8 +66,9 @@ def extract(file_type: str, data: bytes) -> list[Section]:
 
 # --- one function per format -------------------------------------------------
 
+
 def _from_text(data: bytes) -> list[Section]:
-    """Example of the pattern. TXT and Markdown are already text: just decode them."""
+    """TXT and Markdown are already text: just decode them."""
     try:
         return [Section(data.decode("utf-8"))]
     except UnicodeDecodeError:
@@ -67,27 +76,63 @@ def _from_text(data: bytes) -> list[Section]:
 
 
 def _from_pdf(data: bytes) -> list[Section]:
-    # TODO(Lucas): use pypdf.
-    #   reader = PdfReader(io.BytesIO(data))
-    #   one Section per page: Section(page.extract_text() or "", page=number) with number starting at 1
-    # Why per page: the page number goes into the citation ("manual.pdf, p. 3").
-    raise NotImplementedError
+
+    reader = PdfReader(io.BytesIO(data))
+    sections = []
+
+    for page_number, page in enumerate(reader.pages, start=1):
+        sections.append(
+            Section(
+                text=page.extract_text() or "",
+                page=page_number,
+            )
+        )
+
+    return sections
 
 
 def _from_docx(data: bytes) -> list[Section]:
-    # TODO(Lucas): use python-docx.
-    #   document = Document(io.BytesIO(data))
-    #   join the text of document.paragraphs (skip empty ones); a single Section is fine.
-    #   Bonus: also read document.tables (cell.text of each row joined with " | ").
-    raise NotImplementedError
+    document = Document(io.BytesIO(data))
+    parts = []
+
+    for paragraph in document.paragraphs:
+        text = paragraph.text.strip()
+
+        if text:
+            parts.append(text)
+
+    for table in document.tables:
+        for row in table.rows:
+            cells = [cell.text.strip() for cell in row.cells]
+
+            if any(cells):
+                parts.append(" | ".join(cells))
+
+    return [Section("\n".join(parts))]
 
 
 def _from_csv(data: bytes) -> list[Section]:
-    # TODO(Lucas): use the csv module (csv.DictReader over io.StringIO(decoded text)).
-    # A raw CSV line like '2024-01-02,4700,4750' means nothing once it is cut into chunks, because
-    # the header is far away. Turn every row into 'date: 2024-01-02; open: 4700; close: 4750'
-    # and return ONE Section with one such line per row.
-    raise NotImplementedError
+
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError:
+        text = data.decode("latin-1")
+
+    reader = csv.DictReader(io.StringIO(text))
+
+    lines = []
+
+    for row in reader:
+
+        fields = [
+            f"{column}: {value if value is not None else ''}"
+            for column, value in row.items()
+            if column is not None
+        ]
+
+        lines.append("; ".join(fields))
+
+    return [Section("\n".join(lines))]
 
 
 _EXTRACTORS = {
