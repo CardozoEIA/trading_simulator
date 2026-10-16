@@ -7,8 +7,8 @@ from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage
 from app.modules.chat import history, memory
 from app.modules.chat.checkpointer import get_checkpointer
 from app.modules.insights.service import _ensure_owner
-from app.services.agent.conversation.followups import suggest_followups
-from app.services.agent.conversation.graph import (
+from app.agents.chat.support.followups import suggest_followups
+from app.agents.chat.graph import (
     build_conversation_graph,
 )
 

@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -13,12 +15,17 @@ from app.modules.agent.routes import router as agent_router
 from app.modules.results.routes import router as results_router
 from app.modules.insights.routes import router as insights_router
 from app.modules.chat.routes import router as chat_router
+from app.modules.documents.routes import router as documents_router
+from app.modules.knowledge.routes import router as knowledge_router
 
 app = FastAPI(title="Market Navigator AI API")
 
+# Comma-separated list of frontend URLs allowed to call the API (set CORS_ORIGINS in production).
+CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:4200").split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -42,3 +49,5 @@ app.include_router(agent_router)
 app.include_router(results_router)
 app.include_router(insights_router)
 app.include_router(chat_router)
+app.include_router(documents_router)
+app.include_router(knowledge_router)
