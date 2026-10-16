@@ -1,0 +1,32 @@
+# Whole stack on one machine:  docker compose up --build
+# Needs backend/.env (copy .env.example). Models are pulled once:
+#   docker compose exec ollama ollama pull qwen2.5:7b
+#   docker compose exec ollama ollama pull nomic-embed-text
+services:
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+
+  backend:
+    build: ./backend
+    env_file: ./backend/.env
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      CORS_ORIGINS: http://localhost:4200
+    ports:
+      - "8000:8000"
+    depends_on:
+      - ollama
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+
+volumes:
+  ollama_data:
