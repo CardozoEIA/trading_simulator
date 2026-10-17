@@ -1,7 +1,7 @@
 # app/modules/agent/service.py
 from fastapi import HTTPException
 from langchain_core.messages import HumanMessage
-from app.services.agent.graph import build_agent_graph
+from app.agents.explain.graph import build_agent_graph
 
 
 def explain_decision(simulation_id: str, user_id: str, date: str) -> str:

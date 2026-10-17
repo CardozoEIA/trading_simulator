@@ -13,8 +13,8 @@ from fastapi import BackgroundTasks, HTTPException
 
 from app.core.supabase import supabase_admin as supabase
 from app.core.validation import is_valid_uuid
-from app.services.agent.insights.graph import build_insights_graph
-from app.services.agent.insights.tools import highlights_for, load_simulation_data
+from app.agents.insights.graph import build_insights_graph
+from app.agents.insights.tools import highlights_for, load_simulation_data
 
 logger = logging.getLogger(__name__)
 
