@@ -19,6 +19,7 @@ from app.modules.documents.routes import router as documents_router
 from app.modules.knowledge.routes import router as knowledge_router
 from app.modules.report.routes import router as report_router
 from app.modules.compare.routes import router as compare_router
+from app.modules.whatif.routes import router as whatif_router
 
 app = FastAPI(title="Market Navigator AI API")
 
@@ -55,3 +56,4 @@ app.include_router(documents_router)
 app.include_router(knowledge_router)
 app.include_router(report_router)
 app.include_router(compare_router)
+app.include_router(whatif_router)

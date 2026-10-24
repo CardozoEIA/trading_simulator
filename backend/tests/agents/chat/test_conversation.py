@@ -263,6 +263,11 @@ def test_proposal_is_returned_but_not_applied():
         "label": "stop-loss",
         "current": 2.0,
         "suggested": 3.0,
+        "plan": [
+            "Read the current configuration of this simulation",
+            "Run a copy with the stop-loss at 3% (this simulation is not changed)",
+            "Compare both runs",
+        ],
     }
     assert "will not change" in result["messages"][-1].content
 

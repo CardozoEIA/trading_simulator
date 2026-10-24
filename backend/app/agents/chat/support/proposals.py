@@ -1,8 +1,9 @@
 """Validation of risk-limit proposals.
 
 The agent only PROPOSES. Nothing is written anywhere: the student must confirm in the UI,
-which opens the normal setup flow with the suggested value.
+either to run the what-if (US-28) or to open the normal setup flow with the suggested value.
 """
+from app.agents.whatif.plan import plan_steps
 
 PARAMETERS = {
     "stop_loss_percentage": "stop-loss",
@@ -30,15 +31,14 @@ def build_proposal(parameter, value, current: dict | None) -> tuple[dict | None,
     if current_value is not None and current_value == float(value):
         return (None, f"Your {label} is already {value:g}%.")
 
-    return (
-        {
-            "parameter": parameter,
-            "label": label,
-            "current": current_value,
-            "suggested": float(value),
-        },
-        None,
-    )
+    proposal = {
+        "parameter": parameter,
+        "label": label,
+        "current": current_value,
+        "suggested": float(value),
+    }
+
+    return ({**proposal, "plan": plan_steps(proposal)}, None)
 
 
 def proposal_message(proposal: dict) -> str:
@@ -47,4 +47,7 @@ def proposal_message(proposal: dict) -> str:
     if proposal["current"] is not None:
         text += f" (it is {proposal['current']:g}% in this one)"
 
-    return text + ". This simulation will not change. Confirm below to open the setup with that value."
+    return text + (
+        ". This simulation will not change. Review the plan below and press Run what-if to run "
+        "the copy and compare both, or open the setup with that value."
+    )
