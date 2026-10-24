@@ -170,7 +170,7 @@ def _benchmark(configuration: dict, metrics: dict) -> dict:
         f"Buy & hold means investing the full initial capital of {money(float(benchmark['initial_capital']))} "
         f"in {configuration['asset']} on the first trading day of the period ({configuration['start_date']} to "
         f"{configuration['end_date']}) and holding it until the end: final value {money(float(benchmark['final_capital']))}, return {pct(bh_return)}. "
-        f"The strategy returned {pct(strategy_return)}, so it {'beat' if beat else 'did not beat'} buy & hold "
+        f"The strategy returned {pct(strategy_return)}, so it {'beat' if beat else 'trailed'} buy & hold "
         f"by {abs(diff):.2f} percentage points."
     )
     return {

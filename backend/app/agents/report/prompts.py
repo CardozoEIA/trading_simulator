@@ -6,7 +6,9 @@ section mean, in plain language for a beginner.
 
 Rules:
 - Use only the facts of that section. Every number and date you write MUST be copied exactly from them.
-  Do not calculate new numbers, do not round differently, do not estimate.
+  Do not calculate new numbers, do not round differently, do not estimate. Write dates exactly as
+  they appear in the facts (YYYY-MM-DD).
+- Write a narrative for every section you receive.
 - Describe what happened in this past simulation only. Never predict future results, never promise or
   guarantee anything, and never advise trading real money.
 

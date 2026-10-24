@@ -172,6 +172,24 @@ def test_promises_about_future_results_are_rejected():
     assert result["narratives"]["performance"] == GOOD[1]["narrative"]
 
 
+def test_written_out_dates_are_checked_as_dates():
+    written = {"key": "setup", "narrative": "You tested SMA on SPY from January 2, 2023 to 30 June 2023."}
+    result, llm = run_graph([[written, *GOOD[1:]]])
+    assert llm.calls == 1
+    assert result["narratives"]["setup"] == written["narrative"]
+
+    wrong = {"key": "setup", "narrative": "You tested SMA on SPY from March 5, 2023."}
+    result, _ = run_graph([[wrong, *GOOD[1:]], [wrong]])
+    assert "setup" not in result["narratives"]
+
+
+def test_misspelled_narrative_key_is_still_read():
+    typo = {"key": "benchmark", "narmative": GOOD[3]["narrative"]}
+    result, llm = run_graph([[*GOOD[:3], typo]])
+    assert llm.calls == 1
+    assert result["narratives"]["benchmark"] == GOOD[3]["narrative"]
+
+
 def test_invalid_json_from_the_model_is_retried():
     class BrokenThenGood(ScriptedLLM):
         def invoke(self, messages):
