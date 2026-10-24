@@ -170,7 +170,8 @@ def diff_facts(a: dict, b: dict, configuration: list[dict], metrics: list[dict],
             line += f" (difference B minus A: {m['delta_display']})"
         if m["better"] in ("a", "b"):
             side = m["better"].upper()
-            line += f", smaller in {side} (better)" if DIRECTIONS[m["metric"]] == "lower" else f", higher in {side} (better)"
+            size = "smaller" if DIRECTIONS[m["metric"]] == "lower" else "higher"
+            line += f"; {side} had the {size} {m['label'].lower()} (better)"
         elif m["better"] == "tie":
             line += ", the same in both"
         lines.append(line + ".")
