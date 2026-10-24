@@ -1,0 +1,67 @@
+<section class="describe" aria-labelledby="describe-title">
+  <div class="describe-header">
+    <h2 id="describe-title">Describe your simulation</h2>
+    @if (!open()) {
+    <button type="button" class="ghost-btn" (click)="open.set(true)">Describe it in your own words</button>
+    }
+  </div>
+
+  @if (open()) {
+  @if (applied()) {
+  <p class="applied" role="status">The form below is filled in from your description. Review the values and press
+    <strong>Configure simulation</strong>; the risk limits will be filled in on the next step.</p>
+  <button type="button" class="link" (click)="startOver()">Describe another simulation</button>
+  } @else {
+  <p class="hint">Say the asset, the period, the capital, the strategies and the risk limits. The agent fills in the
+    form for you to review; nothing is saved until you confirm each step.</p>
+
+  @if (turns().length) {
+  <div class="turns" role="log" aria-live="polite">
+    @for (turn of turns(); track $index) {
+    <p class="turn" [class.agent]="turn.role === 'agent'">{{ turn.text }}</p>
+    }
+  </div>
+  }
+
+  @if (loading()) {
+  <p class="status" role="status">Reading your description…</p>
+  } @else if (error()) {
+  <p class="error" role="alert">{{ error() }}</p>
+  <button type="button" class="ghost-btn" (click)="parse()">Try again</button>
+  } @else if (result()?.status === 'complete' && result(); as r) {
+  <div class="proposal" role="group" aria-label="Proposed configuration">
+    <p class="proposal-title">Proposed configuration</p>
+    <dl>
+      <div><dt>Asset</dt><dd>{{ r.proposal.asset === 'SP500' ? 'S&P 500' : r.proposal.asset }}</dd></div>
+      <div><dt>Period</dt><dd>{{ r.proposal.start_date }} → {{ r.proposal.end_date }}</dd></div>
+      <div><dt>Initial capital</dt><dd>${{ r.proposal.initial_capital }}</dd></div>
+      <div><dt>Strategies</dt><dd>{{ strategies(r.proposal) }}</dd></div>
+      <div><dt>Stop-loss</dt><dd>{{ r.proposal.stop_loss_percentage }}%</dd></div>
+      <div><dt>Max position size</dt><dd>{{ r.proposal.max_position_size }}%</dd></div>
+      <div><dt>Max drawdown</dt><dd>{{ r.proposal.max_drawdown }}%</dd></div>
+    </dl>
+    <div class="actions">
+      <button type="button" class="primary-btn" (click)="confirm()">Use these values</button>
+      <button type="button" class="link" (click)="startOver()">Start over</button>
+    </div>
+  </div>
+  }
+
+  @if (result()?.status !== 'complete' && !loading()) {
+  <form class="describe-input" (submit)="$event.preventDefault(); send()">
+    <label class="sr-only" for="describe-text">{{ turns().length ? 'Your answer' : 'Your description' }}</label>
+    <textarea id="describe-text" rows="3" [maxlength]="maxLength" name="description" [(ngModel)]="draft"
+      [placeholder]="turns().length ? 'Answer the question above' : example"></textarea>
+    <div class="actions">
+      <button type="submit" class="primary-btn" [disabled]="!draft().trim()">
+        {{ turns().length ? 'Send answer' : 'Read my description' }}
+      </button>
+      @if (turns().length) {
+      <button type="button" class="link" (click)="startOver()">Start over</button>
+      }
+    </div>
+  </form>
+  }
+  }
+  }
+</section>

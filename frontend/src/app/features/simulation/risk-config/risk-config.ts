@@ -7,6 +7,7 @@ import { StepIndicator } from '@shared/ui/step-indicator/step-indicator';
 import { RiskConfiguration } from '@models/simulation/risk-configuration.model';
 import { RiskConfigurationResponse } from '@models/simulation/risk-configuration-response.model';
 import { PENDING_RISK_CHANGE_KEY } from '@models/agent/chat.model';
+import { PENDING_SETUP_RISK_KEY } from '@models/agent/setup.model';
 import { HelpHint } from '@shared/ui/help-hint/help-hint';
 
 function percentageValidator(control: AbstractControl): ValidationErrors | null {
@@ -44,7 +45,32 @@ export class RiskConfig implements OnInit {
 
   ngOnInit(): void {
     this.configurationId = this.route.snapshot.paramMap.get('configurationId');
+    this.applyPendingSetupRisk();
     this.applyPendingRiskChange();
+  }
+
+  /** Risk limits from a described setup (US-29). The student still reviews and saves them. */
+  private applyPendingSetupRisk(): void {
+    try {
+      const raw = sessionStorage.getItem(PENDING_SETUP_RISK_KEY);
+      if (!raw) return;
+      sessionStorage.removeItem(PENDING_SETUP_RISK_KEY);
+
+      const pending = JSON.parse(raw) as {
+        stop_loss_percentage: number | null; max_position_size: number | null; max_drawdown: number | null; createdAt: number;
+      };
+      const thirtyMinutes = 30 * 60 * 1000;
+      if (Date.now() - pending.createdAt > thirtyMinutes) return;
+
+      this.riskForm.patchValue({
+        stopLossPercentage: pending.stop_loss_percentage,
+        maxPositionSize: pending.max_position_size,
+        maxDrawdown: pending.max_drawdown,
+      });
+      this.suggestedNotice = 'Filled in from your description. Review the risk limits and save them.';
+    } catch {
+      // Storage unavailable or malformed value: nothing to prefill.
+    }
   }
 
   /** A risk value the student confirmed in the chat (guided mode). The student still reviews and saves it. */

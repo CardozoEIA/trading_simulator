@@ -9,6 +9,9 @@ import { Router } from '@angular/router';
 import { BacktestConfigurationResponse } from '@models/simulation/backtest-configuration-response.model';
 import { StepIndicator } from '@shared/ui/step-indicator/step-indicator';
 import { HelpHint } from '@shared/ui/help-hint/help-hint';
+import { PENDING_RISK_CHANGE_KEY } from '@models/agent/chat.model';
+import { PENDING_SETUP_RISK_KEY, SetupProposal } from '@models/agent/setup.model';
+import { DescribeSetup } from './describe-setup/describe-setup';
 
 function dateRangeValidator(group: AbstractControl): ValidationErrors | null {
   const start = group.get('startDate')?.value;
@@ -27,7 +30,7 @@ function atLeastOneStrategyValidator(control: AbstractControl): ValidationErrors
 
 @Component({
   selector: 'app-simulation-config',
-  imports: [ReactiveFormsModule, StepIndicator, HelpHint],
+  imports: [ReactiveFormsModule, StepIndicator, HelpHint, DescribeSetup],
   templateUrl: './simulation-config.html',
   styleUrl: './simulation-config.css',
 })
@@ -74,6 +77,30 @@ export class SimulationConfig implements OnInit {
       },
       error: (error) => { this.alert.showApiError(error) }
     });
+  }
+
+  /** US-29: a proposal the student confirmed only pre-fills the form; they still review and submit it. */
+  applyDescribedSetup(proposal: SetupProposal): void {
+    this.simConfigForm.patchValue({
+      asset: proposal.asset ?? '',
+      startDate: proposal.start_date ?? '',
+      endDate: proposal.end_date ?? '',
+      initialCapital: proposal.initial_capital,
+    });
+    this.strategies.forEach((strategy, index) =>
+      this.strategiesArray.at(index).setValue((proposal.strategies ?? []).includes(strategy.code)));
+
+    try {
+      sessionStorage.removeItem(PENDING_RISK_CHANGE_KEY);
+      sessionStorage.setItem(PENDING_SETUP_RISK_KEY, JSON.stringify({
+        stop_loss_percentage: proposal.stop_loss_percentage,
+        max_position_size: proposal.max_position_size,
+        max_drawdown: proposal.max_drawdown,
+        createdAt: Date.now(),
+      }));
+    } catch {
+      // Without storage the risk step simply opens empty.
+    }
   }
 
   onSubmit(){

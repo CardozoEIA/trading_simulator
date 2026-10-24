@@ -3,6 +3,7 @@
     </app-step-indicator>
 
     <h1>Simulation configuration</h1>
+    <app-describe-setup (confirmed)="applyDescribedSetup($event)" />
     <form [formGroup]="simConfigForm" (ngSubmit)="onSubmit()">
 
         <label for="asset">Assets</label>
