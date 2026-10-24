@@ -11,10 +11,15 @@
     </div>
   } @else {
     <p class="count-text">Showing your {{ history.length }} most recent simulations, newest first.</p>
+    <div class="compare-bar">
+      <span class="compare-hint">Select two finished simulations to compare them ({{ selected.length }}/2 selected).</span>
+      <button type="button" class="compare-btn" [disabled]="selected.length !== 2" (click)="compare()">Compare</button>
+    </div>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
+            <th><span class="sr-only">Select to compare</span></th>
             <th>Run on</th>
             <th>Asset</th>
             <th>Strategies</th>
@@ -28,7 +33,12 @@
         </thead>
         <tbody>
           @for (item of history; track item.id) {
-            <tr class="clickable" (click)="open(item)">
+            <tr class="clickable" [class.selected]="isSelected(item)" (click)="open(item)">
+              <td class="select-cell" (click)="$event.stopPropagation()">
+                <input type="checkbox" [checked]="isSelected(item)" [disabled]="!canSelect(item)"
+                       (change)="toggleSelection(item)"
+                       [attr.aria-label]="'Select the ' + item.asset + ' simulation run on ' + (item.started_at | date:'yyyy-MM-dd HH:mm') + ' to compare'" />
+              </td>
               <td class="mono">{{ item.started_at | date:'yyyy-MM-dd HH:mm' }}</td>
               <td>{{ item.asset }}</td>
               <td>{{ item.strategies.join(', ') }}</td>

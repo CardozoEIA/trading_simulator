@@ -11,6 +11,7 @@ import { SimulationStatus } from './features/simulation/simulation-status/simula
 import { SimulationDecisions } from './features/simulation/simulation-decisions/simulation-decisions';
 import { SimulationHistory } from './features/simulation/simulation-history/simulation-history';
 import { Knowledge } from './features/knowledge/knowledge';
+import { SimulationCompare } from './features/simulation/simulation-compare/simulation-compare';
 
 
 export const routes: Routes = [
@@ -23,5 +24,6 @@ export const routes: Routes = [
     { path: 'simulation-status/:simulationId', component: SimulationStatus, canActivate: [authGuard] },
     { path: 'simulation-decisions/:simulationId', component: SimulationDecisions, canActivate: [authGuard] },
     { path: 'history', component: SimulationHistory, canActivate: [authGuard] },
+    { path: 'compare', component: SimulationCompare, canActivate: [authGuard] },
     { path: 'knowledge', component: Knowledge, canActivate: [authGuard] },
 ];

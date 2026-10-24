@@ -11,6 +11,7 @@ import { SimulationMetrics } from '@models/analysis/metrics.model';
 import { SimulationHistoryItem } from '@models/simulation/simulation-history.model';
 import { SimulationInsights } from '@models/agent/insights.model';
 import { SimulationReport } from '@models/agent/report.model';
+import { SimulationComparison } from '@models/agent/compare.model';
 
 @Injectable({
   providedIn: 'root',
@@ -62,6 +63,12 @@ export class Simulations {
   }
   public generateInsights(simulationId: string) {
     return this.http.post<SimulationInsights>(`${this.baseUrl}/simulations/${simulationId}/insights`, {});
+  }
+  public compareSimulations(simulationA: string, simulationB: string) {
+    return this.http.post<SimulationComparison>(`${this.baseUrl}/simulations/compare`, {
+      simulation_a: simulationA,
+      simulation_b: simulationB,
+    });
   }
   public getReport(simulationId: string) {
     return this.http.get<SimulationReport>(`${this.baseUrl}/simulations/${simulationId}/report`);
