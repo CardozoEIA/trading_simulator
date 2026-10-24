@@ -65,6 +65,12 @@ def test_verify_accepts_copied_values_and_rejects_invented_ones():
     assert unverified_values("It gained 18.5% by 2023-05-01.", facts) == ["2023-05-01", "18.5"]
 
 
+def test_verify_checks_written_out_dates_as_dates():
+    facts = "Largest drawdown: 10.00% on 2023-03-20."
+    assert unverified_values("It fell 10.00% by March 20, 2023.", facts) == []
+    assert unverified_values("It fell 10.00% by 21 March 2023.", facts) == ["2023-03-21"]
+
+
 # --- graph with fake tools and a scripted model ---
 
 HIGHLIGHTS = [
