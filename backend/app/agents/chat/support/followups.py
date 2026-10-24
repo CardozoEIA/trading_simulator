@@ -22,6 +22,9 @@ def suggest_followups(route: str | None, date: str | None = None) -> list[str]:
     if route == "conceptual":
         return [OVERVIEW, BENCHMARK, FIRST_DAY]
 
+    if route == "compare":
+        return [OVERVIEW, BENCHMARK, "What is the Sharpe ratio?"]
+
     if route == "propose_change":
         return [OVERVIEW, BENCHMARK, "What is a stop-loss?"]
 

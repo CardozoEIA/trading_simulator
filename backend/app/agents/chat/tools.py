@@ -1,5 +1,8 @@
 from app.core.supabase import supabase_admin as supabase
 
+from app.agents.compare.graph import build_compare_graph
+from app.agents.compare.tools import describe
+
 from app.agents.insights.facts import overview_text
 from app.agents.insights.tools import (
     highlights_for,
@@ -76,3 +79,31 @@ def current_risk_values(simulation_id: str) -> dict | None:
     )
 
     return risk[0] if risk else None
+
+
+COMPARE_LINES = ("total_return_pct", "sharpe_ratio", "max_drawdown_pct", "excess_return_pct")
+
+
+def compare_simulations_text(simulation_id: str, other_id: str, user_id: str) -> str:
+    """Chat reply for "compare this run with ...": key metrics side by side plus the verified explanation."""
+
+    result = build_compare_graph().invoke(
+        {"user_id": user_id, "simulation_a": simulation_id, "simulation_b": other_id}
+    )
+
+    metrics = {m["metric"]: m for m in result["metrics_diff"]}
+
+    lines = [f"Compared with {describe(result['slice_b']['configuration'])} (A is this run, B the other one):"]
+    lines.extend(
+        f"- {metrics[key]['label']}: this run {metrics[key]['a_display']}, the other {metrics[key]['b_display']}"
+        for key in COMPARE_LINES
+        if metrics[key]["a_display"] != "n/a" or metrics[key]["b_display"] != "n/a"
+    )
+
+    lines.append(
+        result.get("explanation")
+        or "I could not write an explanation backed by the data, but the figures above are from both simulations."
+    )
+    lines.append("Open History and select both runs to see the full side-by-side comparison.")
+
+    return "\n".join(lines)
