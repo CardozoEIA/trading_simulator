@@ -17,6 +17,7 @@ from app.modules.insights.routes import router as insights_router
 from app.modules.chat.routes import router as chat_router
 from app.modules.documents.routes import router as documents_router
 from app.modules.knowledge.routes import router as knowledge_router
+from app.modules.report.routes import router as report_router
 
 app = FastAPI(title="Market Navigator AI API")
 
@@ -51,3 +52,4 @@ app.include_router(insights_router)
 app.include_router(chat_router)
 app.include_router(documents_router)
 app.include_router(knowledge_router)
+app.include_router(report_router)
