@@ -14,10 +14,11 @@ import { ChartHighlight } from '@shared/charts/equity-chart/equity-chart';
 import { Highlight, HighlightKind, SimulationInsights } from '@models/agent/insights.model';
 import { SimulationChat } from '../simulation-chat/simulation-chat';
 import { HelpHint } from '@shared/ui/help-hint/help-hint';
+import { SimulationReport } from '../simulation-report/simulation-report';
 
 @Component({
   selector: 'app-simulation-decisions',
-  imports: [RouterLink, DecimalPipe, EquityChart, SimulationChat, HelpHint],
+  imports: [RouterLink, DecimalPipe, EquityChart, SimulationChat, HelpHint, SimulationReport],
   templateUrl: './simulation-decisions.html',
   styleUrl: './simulation-decisions.css',
 })
@@ -207,6 +208,9 @@ export class SimulationDecisions implements OnInit, OnDestroy {
     if (d.executed) return '';
     return d.action === 'BUY' ? 'Already fully invested — no cash available' : 'No open position to sell';
   }
+
+  // --- Shareable report (US-32) ---
+  reportOpen = false;
 
   // --- Agent explanation modal (US-20) ---
   explanationOpen = false;

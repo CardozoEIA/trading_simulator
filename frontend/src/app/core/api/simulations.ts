@@ -10,6 +10,7 @@ import { Signal } from '@models/analysis/signal.model';
 import { SimulationMetrics } from '@models/analysis/metrics.model';
 import { SimulationHistoryItem } from '@models/simulation/simulation-history.model';
 import { SimulationInsights } from '@models/agent/insights.model';
+import { SimulationReport } from '@models/agent/report.model';
 
 @Injectable({
   providedIn: 'root',
@@ -61,5 +62,8 @@ export class Simulations {
   }
   public generateInsights(simulationId: string) {
     return this.http.post<SimulationInsights>(`${this.baseUrl}/simulations/${simulationId}/insights`, {});
+  }
+  public getReport(simulationId: string) {
+    return this.http.get<SimulationReport>(`${this.baseUrl}/simulations/${simulationId}/report`);
   }
 }

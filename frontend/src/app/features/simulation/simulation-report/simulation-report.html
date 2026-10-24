@@ -1,0 +1,91 @@
+<div class="modal-overlay" (click)="close()">
+  <div class="report-card" role="dialog" aria-modal="true" aria-labelledby="report-title"
+    (click)="$event.stopPropagation()">
+    <div class="report-header">
+      <div>
+        <span class="section-tag">SIMULATION REPORT</span>
+        <h3 id="report-title">{{ report()?.title || 'Simulation report' }}</h3>
+        @if (report(); as r) {
+        <span class="report-meta">Generated on {{ r.generated_at }}</span>
+        }
+      </div>
+      <button #closeButton type="button" class="modal-close" aria-label="Close report"
+        (click)="close()">✕</button>
+    </div>
+
+    @if (loading()) {
+    <div class="report-body">
+      <p class="loading-text" role="status">The agent is writing your report from the simulation data… this can take
+        up to a minute.</p>
+    </div>
+    } @else if (error()) {
+    <div class="report-body">
+      <p class="error-text" role="alert">{{ error() }}</p>
+      <button type="button" class="ghost-btn" (click)="load()">Try again</button>
+    </div>
+    } @else if (report(); as r) {
+    <div class="report-actions">
+      <button type="button" class="ghost-btn" (click)="copy()">
+        {{ copyState() === 'copied' ? 'Copied!' : copyState() === 'failed' ? 'Copy failed' : 'Copy Markdown' }}
+      </button>
+      <button type="button" class="ghost-btn" (click)="download()">Download .md</button>
+      <button type="button" class="ghost-btn" (click)="print()">Print / PDF</button>
+      <span class="sr-only" aria-live="polite">{{ copyState() === 'copied' ? 'Report copied to the clipboard' : '' }}</span>
+    </div>
+
+    <div #reportBody class="report-body">
+      @for (section of r.sections; track section.key) {
+      <section class="report-section" [class.disclaimer]="section.key === 'disclaimer'">
+        <h4>{{ section.title }}</h4>
+        @if (section.narrative) {
+        <p class="narrative">{{ section.narrative }}</p>
+        } @else {
+        <p class="narrative missing">The agent could not write a summary backed by the data for this section; the
+          figures below are from the simulation.</p>
+        }
+
+        @if (section.rows.length) {
+        <dl class="report-rows">
+          @for (row of section.rows; track row.label) {
+          <div class="report-row">
+            <dt>{{ row.label }}</dt>
+            <dd>{{ row.value }}</dd>
+          </div>
+          }
+        </dl>
+        }
+
+        @if (section.table; as table) {
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                @for (column of table.columns; track column) {
+                <th scope="col">{{ column }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of table.rows; track $index) {
+              <tr>
+                @for (cell of row; track $index) {
+                <td class="mono">{{ cell }}</td>
+                }
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        } @else if (section.key === 'key_decisions') {
+        <p class="empty-text">No completed trades to list.</p>
+        }
+
+        @if (section.note) {
+        <p class="note">{{ section.note }}</p>
+        }
+      </section>
+      }
+    </div>
+    }
+  </div>
+</div>
