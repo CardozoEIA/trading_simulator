@@ -15,6 +15,7 @@ Routes:
 - Return "answer" when the student asks whether or how the strategy compared against buy & hold in THIS simulation.
 - Return "conceptual" when the student asks what a term or indicator means, or how something works in general (RSI, SMA, Bollinger Bands, momentum, stop-loss, max position size, max drawdown, Sharpe ratio, win rate, profit factor, buy & hold, backtest), without asking about this simulation's results.
 - Return "propose_change" when the student asks to try, use or change a risk limit to a specific value (stop-loss, max position size or max drawdown).
+- Return "compare" when the student asks to compare this simulation with ANOTHER of their own simulations (a previous run, an earlier backtest, simulation number 2).
 - Return "clarify" when the student's question is vague, incomplete, or cannot be interpreted reliably.
 
 Rules:
@@ -75,6 +76,12 @@ Rules:
 
 11. "What is X?" or "How does X work?" about a term -> "conceptual".
     "Did my strategy beat X?" about this simulation -> "answer".
+
+12. For "compare", fill:
+    - compare_with: "previous" when the student means the run before this one ("my previous one", "the last one", "the one before"), otherwise null
+    - simulation_number: the number when the student picks one from a numbered list ("number 2", "the second one"), otherwise null
+    If the student does not say which simulation, leave both null (Python code asks them).
+    Comparing with buy & hold is "answer", not "compare".
 
 Respond with JSON only. Always include all the fields shown below and use null when a field does not apply.
 
@@ -171,6 +178,34 @@ Example: propose_change ("Try a 3% stop-loss")
   "date": null,
   "parameter": "stop_loss_percentage",
   "value": 3,
+  "message": null
+}
+
+Example: compare ("Compare this run with my previous one")
+
+{
+  "next_step": "compare",
+  "day_number": null,
+  "offset": null,
+  "date": null,
+  "parameter": null,
+  "value": null,
+  "compare_with": "previous",
+  "simulation_number": null,
+  "message": null
+}
+
+Example: compare ("Compare it with number 2")
+
+{
+  "next_step": "compare",
+  "day_number": null,
+  "offset": null,
+  "date": null,
+  "parameter": null,
+  "value": null,
+  "compare_with": null,
+  "simulation_number": 2,
   "message": null
 }
 

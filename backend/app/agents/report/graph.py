@@ -10,41 +10,19 @@ a short narrative per section, and verify drops anything it cannot back with dat
 """
 import json
 import logging
-import re
 from typing import TypedDict
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import END, START, StateGraph
 
 from app.agents.common.llm import get_chat_model
-from app.agents.insights.verify import unverified_values
+from app.agents.insights.verify import makes_promises, unverified_values
 from app.agents.report.facts import NARRATED_SECTIONS, build_sections
 from app.agents.report.prompts import REPORT_SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
 
 MAX_ATTEMPTS = 2
-
-# results of a past backtest must never read as a promise about the future
-FORWARD_LOOKING_RE = re.compile(
-    r"\b(guarantee\w*|promis\w*|will (?:always|continue|keep|make|earn|beat|outperform)|"
-    r"you should (?:buy|sell|invest))\b",
-    re.IGNORECASE,
-)
-
-
-MONTHS = {m: i for i, m in enumerate(
-    ["january", "february", "march", "april", "may", "june", "july",
-     "august", "september", "october", "november", "december"], start=1)}
-_MONTH = r"(january|february|march|april|may|june|july|august|september|october|november|december)"
-WRITTEN_DATE_RE = re.compile(rf"\b{_MONTH}\s+(\d{{1,2}})(?:st|nd|rd|th)?,?\s+(\d{{4}})\b", re.IGNORECASE)
-WRITTEN_DATE_DMY_RE = re.compile(rf"\b(\d{{1,2}})(?:st|nd|rd|th)?\s+(?:of\s+)?{_MONTH},?\s+(\d{{4}})\b", re.IGNORECASE)
-
-
-def _iso_dates(text: str) -> str:
-    """'October 14, 2023' -> '2023-10-14', so written-out dates are checked as dates, not as numbers."""
-    text = WRITTEN_DATE_RE.sub(lambda m: f"{m[3]}-{MONTHS[m[1].lower()]:02d}-{int(m[2]):02d}", text)
-    return WRITTEN_DATE_DMY_RE.sub(lambda m: f"{m[3]}-{MONTHS[m[2].lower()]:02d}-{int(m[1]):02d}", text)
 
 
 def _narrative(draft: dict) -> str:
@@ -113,8 +91,8 @@ def build_report_graph(llm=None):
             key, text = draft.get("key"), _narrative(draft)
             if key not in pending or not text:
                 continue
-            bad = unverified_values(_iso_dates(text), f"{pending[key]['facts']}\n{_context(state)}")
-            if FORWARD_LOOKING_RE.search(text):
+            bad = unverified_values(text, f"{pending[key]['facts']}\n{_context(state)}")
+            if makes_promises(text):
                 promises = True
             elif bad:
                 problems.extend(bad)

@@ -34,6 +34,32 @@ export class SimulationHistory implements OnInit {
     }
   }
 
+  // --- Compare two simulations (US-27) ---
+  selected: string[] = [];
+
+  isSelected(item: SimulationHistoryItem): boolean {
+    return this.selected.includes(item.id);
+  }
+
+  canSelect(item: SimulationHistoryItem): boolean {
+    return item.status !== 'RUNNING' && (this.isSelected(item) || this.selected.length < 2);
+  }
+
+  toggleSelection(item: SimulationHistoryItem): void {
+    this.selected = this.isSelected(item)
+      ? this.selected.filter(id => id !== item.id)
+      : [...this.selected, item.id];
+  }
+
+  compare(): void {
+    if (this.selected.length !== 2) return;
+    // A is the older run, so "B minus A" reads as what changed in the newer one
+    const [a, b] = this.history
+      .filter(h => this.selected.includes(h.id))
+      .sort((x, y) => x.started_at.localeCompare(y.started_at));
+    this.router.navigate(['/compare'], { queryParams: { a: a.id, b: b.id } });
+  }
+
   statusLabel(status: string): string {
     if (status === 'FINISHED') return 'Completed';
     if (status === 'STOPPED_BY_RISK') return 'Stopped by risk';

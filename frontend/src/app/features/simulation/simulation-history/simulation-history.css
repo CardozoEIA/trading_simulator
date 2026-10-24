@@ -97,6 +97,67 @@ td.negative { color: #E0605E; }
   color: var(--background-main);
 }
 
+/* --- Compare (US-27) --- */
+.compare-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0 0 1rem 0;
+}
+
+.compare-hint {
+  font-size: 0.8rem;
+  color: var(--secondary-blue);
+}
+
+.compare-btn {
+  background: none;
+  border: 1px solid var(--golden-accent);
+  color: var(--golden-accent);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.45rem 1.1rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.compare-btn:hover:not(:disabled) {
+  background-color: var(--golden-accent);
+  color: var(--background-main);
+}
+.compare-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.compare-btn:focus-visible,
+.open-btn:focus-visible,
+.select-cell input:focus-visible {
+  outline: 2px solid var(--golden-accent);
+  outline-offset: 2px;
+}
+
+.select-cell input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--golden-accent);
+  cursor: pointer;
+}
+.select-cell input:disabled { cursor: not-allowed; }
+
+tr.selected td { background-color: rgba(201, 161, 92, 0.08); }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .back-link {
   color: var(--golden-accent);
   text-decoration: none;

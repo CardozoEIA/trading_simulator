@@ -1,0 +1,104 @@
+<div class="compare-container">
+  <span class="section-tag">COMPARE SIMULATIONS</span>
+  <h1>Which configuration performed better?</h1>
+
+  @if (loading()) {
+  <p class="loading-text" role="status">The agent is comparing your simulations… this can take up to a minute.</p>
+  } @else if (error()) {
+  <div class="error-box" role="alert">
+    <p>{{ error() }}</p>
+    @if (simulationA && simulationB) {
+    <button type="button" class="ghost-btn" (click)="load()">Try again</button>
+    }
+  </div>
+  } @else if (comparison(); as c) {
+  <div class="verdict" [class.tie]="c.winner === 'tie'">
+    <span class="verdict-label">Verdict</span>
+    <span class="verdict-value">{{ verdict(c.winner) }}</span>
+  </div>
+
+  <div class="runs">
+    @for (side of ['a', 'b']; track side) {
+    @let run = side === 'a' ? c.simulation_a : c.simulation_b;
+    <div class="run-card" [class.winner]="c.winner === side">
+      <span class="run-tag">Simulation {{ side.toUpperCase() }}{{ c.winner === side ? ' · better' : '' }}</span>
+      <span class="run-label">{{ run.label }}</span>
+      @if (run.started_at) {
+      <span class="run-meta">Run on {{ run.started_at | date:'yyyy-MM-dd HH:mm' }} ·
+        {{ run.status === 'STOPPED_BY_RISK' ? 'Stopped by risk' : 'Completed' }}</span>
+      }
+      <a [routerLink]="['/simulation-decisions', run.id]">Open results</a>
+    </div>
+    }
+  </div>
+
+  <h2>Likely drivers</h2>
+  <div class="explanation-card">
+    @if (c.explanation) {
+    <p class="explanation-text">{{ c.explanation }}</p>
+    } @else {
+    <p class="explanation-missing">The agent could not write an explanation backed by the data. The tables below are
+      computed from both simulations.</p>
+    }
+    <p class="disclaimer">Based only on the recorded data of both simulations. A backtest shows likely drivers, not
+      proven causes, and is not a guarantee of future results.</p>
+  </div>
+
+  <h2>Configuration</h2>
+  <p class="table-hint">{{ changedCount === 0 ? 'Both simulations used the same configuration.' : changedCount + ' setting(s)
+    changed.' }}</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Setting</th>
+          <th scope="col">A</th>
+          <th scope="col">B</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of c.configuration_diff; track row.field) {
+        <tr [class.changed]="row.changed">
+          <th scope="row">
+            {{ row.label }}
+            @if (row.changed) {<span class="changed-pill">Changed</span>}
+          </th>
+          <td class="mono">{{ row.a }}</td>
+          <td class="mono">{{ row.b }}</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Performance</h2>
+  <p class="table-hint">The better value of each metric is highlighted. "B − A" is how much B differs from A.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Metric</th>
+          <th scope="col">A</th>
+          <th scope="col">B</th>
+          <th scope="col">B − A</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (m of c.metrics_diff; track m.metric) {
+        <tr>
+          <th scope="row">{{ m.label }}</th>
+          <td class="mono" [class.better]="m.better === 'a'">{{ m.a_display }}</td>
+          <td class="mono" [class.better]="m.better === 'b'">{{ m.b_display }}</td>
+          <td class="mono">{{ m.delta_display }}</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+
+  <div class="back-links">
+    <a routerLink="/history">Back to history</a>
+    <a routerLink="/dashboard">Back to dashboard</a>
+  </div>
+</div>

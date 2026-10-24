@@ -11,6 +11,7 @@ VALID_ROUTES = {
     "answer",
     "conceptual",
     "propose_change",
+    "compare",
     "clarify",
 }
 
@@ -58,6 +59,8 @@ def _fallback(message: str = FALLBACK_MESSAGE) -> dict:
         "date": None,
         "parameter": None,
         "value": None,
+        "compare_with": None,
+        "simulation_number": None,
         "message": message,
     }
 
@@ -96,5 +99,7 @@ Last discussed date:
         "date": payload.get("date"),
         "parameter": payload.get("parameter"),
         "value": parse_number(payload.get("value")),
+        "compare_with": payload.get("compare_with") if payload.get("compare_with") == "previous" else None,
+        "simulation_number": parse_int(payload.get("simulation_number")),
         "message": payload.get("message"),
     }
