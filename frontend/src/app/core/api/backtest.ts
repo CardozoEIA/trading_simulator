@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Asset } from '@models/simulation/asset.model';
 import { Strategy } from '@models/simulation/strategy.model';
 import { BacktestConfigurationResponse } from '@models/simulation/backtest-configuration-response.model';
+import { SetupParseResponse } from '@models/agent/setup.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -29,5 +30,10 @@ export class Backtest {
       initial_capital: initialCapital,
       strategies: strategies
     })
+  }
+
+  /** US-29: reads a plain-language description into a configuration proposal. Saves nothing. */
+  public parseSetup(description: string) {
+    return this.http.post<SetupParseResponse>(`${this.baseUrl}/simulations/setup/parse`, { description });
   }
 }
