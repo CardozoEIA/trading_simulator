@@ -1,6 +1,11 @@
 <div class="results-container">
   <span class="section-tag">SIMULATION RESULTS</span>
-  <h1>How your strategy performed</h1>
+  <div class="page-header">
+    <h1>How your strategy performed</h1>
+    @if (simulationId && summary && simulationStatus !== 'RUNNING') {
+    <button type="button" class="report-btn" (click)="reportOpen = true">Generate report</button>
+    }
+  </div>
 
   @if (loading) {
   <p class="loading-text">Loading results…</p>
@@ -274,6 +279,9 @@
           }
         </div>
       </div>
+      }
+      @if (reportOpen && simulationId) {
+      <app-simulation-report [simulationId]="simulationId" (closed)="reportOpen = false" />
       }
       @if (selectedHighlight; as h) {
       <div class="modal-overlay" (click)="closeHighlight()">

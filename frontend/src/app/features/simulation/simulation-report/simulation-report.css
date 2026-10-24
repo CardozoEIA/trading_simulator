@@ -1,0 +1,215 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 27, 43, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 1000;
+}
+
+.report-card {
+  background-color: var(--surface-text);
+  color: var(--background-main);
+  border-radius: 6px;
+  border-top: 4px solid var(--golden-accent);
+  max-width: 760px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(11, 27, 43, 0.1);
+}
+
+.section-tag {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--golden-accent);
+  margin-bottom: 0.35rem;
+}
+
+.report-header h3 {
+  font-family: var(--font-display);
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.report-meta {
+  display: block;
+  margin-top: 0.3rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--secondary-blue);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--secondary-blue);
+  padding: 0.25rem 0.4rem;
+  border-radius: 4px;
+}
+
+.report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.9rem 1.5rem;
+  border-bottom: 1px solid rgba(11, 27, 43, 0.1);
+}
+
+.ghost-btn {
+  background: none;
+  border: 1px solid var(--golden-accent);
+  color: #8a6a2f;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.ghost-btn:hover {
+  background-color: var(--golden-accent);
+  color: var(--background-main);
+}
+
+.ghost-btn:focus-visible,
+.modal-close:focus-visible {
+  outline: 2px solid var(--golden-accent);
+  outline-offset: 2px;
+}
+
+.report-body {
+  padding: 1.25rem 1.5rem 1.5rem;
+  overflow-y: auto;
+}
+
+.report-section + .report-section {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(11, 27, 43, 0.08);
+}
+
+.report-section h4 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.narrative {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0 0 0.9rem 0;
+}
+
+.narrative.missing,
+.report-section.disclaimer .narrative {
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--secondary-blue);
+}
+
+.report-rows {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem 1.25rem;
+  margin: 0;
+}
+
+.report-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px dashed rgba(11, 27, 43, 0.12);
+  font-size: 0.82rem;
+}
+
+.report-row dt {
+  color: var(--secondary-blue);
+}
+
+.report-row dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin-top: 0.9rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+th, td {
+  text-align: left;
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid rgba(11, 27, 43, 0.1);
+  white-space: nowrap;
+}
+
+th {
+  font-weight: 600;
+  color: var(--secondary-blue);
+  font-size: 0.72rem;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.note,
+.empty-text {
+  margin: 0.6rem 0 0 0;
+  font-size: 0.75rem;
+  color: var(--secondary-blue);
+}
+
+.loading-text {
+  color: var(--secondary-blue);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.error-text {
+  font-size: 0.88rem;
+  color: #a13d3d;
+  margin: 0 0 1rem 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .modal-overlay { padding: 0.75rem; align-items: stretch; }
+  .report-card { max-height: none; }
+  .report-header, .report-actions, .report-body { padding-left: 1rem; padding-right: 1rem; }
+  .report-rows { grid-template-columns: 1fr; }
+}
