@@ -46,17 +46,34 @@
     @if (proposal(); as p) {
       <div class="proposal" role="group" aria-label="Suggested change">
         <p>
-          Open a new simulation setup with the <strong>{{ p.label }}</strong> at
-          <strong>{{ p.suggested }}%</strong>@if (p.current !== null) { (it is {{ p.current }}% now)}?
+          What if the <strong>{{ p.label }}</strong> were <strong>{{ p.suggested }}%</strong>@if (p.current !== null) { (it is {{ p.current }}% now)}?
+          The agent will follow this plan:
         </p>
+        <ol class="plan">
+          @for (step of p.plan; track $index) {
+            <li>{{ step }}</li>
+          }
+        </ol>
         <p class="proposal-note">
-          Nothing changes until you confirm, and this simulation stays as it is.
+          Nothing runs until you confirm, and this simulation stays as it is.
         </p>
-        <div class="proposal-actions">
-          <button type="button" class="primary" (click)="confirmProposal()">Confirm</button>
-          <button type="button" class="secondary" (click)="proposal.set(null)">Dismiss</button>
-        </div>
+        @if (whatIfRunning()) {
+          <p class="what-if-progress" role="status">Running the copy and comparing both runs… this can take a minute.</p>
+        } @else {
+          @if (whatIfError()) {
+            <p class="what-if-error" role="alert">{{ whatIfError() }}</p>
+          }
+          <div class="proposal-actions">
+            <button type="button" class="primary" (click)="runWhatIf()">Run what-if</button>
+            <button type="button" class="secondary" (click)="confirmProposal()">Open in setup</button>
+            <button type="button" class="link" (click)="proposal.set(null)">Dismiss</button>
+          </div>
+        }
       </div>
+    }
+
+    @if (whatIfResult(); as r) {
+      <app-what-if-result [result]="r" (closed)="whatIfResult.set(null)" />
     }
 
     @if (!sending() && suggestions().length) {

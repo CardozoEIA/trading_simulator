@@ -9,6 +9,7 @@ from langchain_core.tools import tool
 from app.agents.compare import graph as compare_graph
 from app.agents.compare import tools as compare_tools
 from app.agents.compare.diff import configuration_diff, diff_facts, metrics_diff, winner
+from app.agents.compare.verify import wrong_directions
 from app.agents.insights.verify import unverified_values
 
 SLICE_A = {
@@ -90,7 +91,7 @@ def test_facts_state_differences_and_direction_explicitly():
     metrics = metrics_diff(SLICE_A, SLICE_B)
     facts = diff_facts(SLICE_A, SLICE_B, configuration, metrics, winner(metrics))
     assert "Stop-loss: A 5.00%, B 3.00%." in facts
-    assert "Max drawdown: A 10.00%, B 6.00% (difference B minus A: -4.00 pts), smaller in B (better)." in facts
+    assert "Max drawdown: A 10.00%, B 6.00% (difference B minus A: -4.00 pts); B had the smaller max drawdown (better)." in facts
     assert "By total return, simulation A performed better." in facts
     assert "Worst trade -$120.00" in facts
 
@@ -195,6 +196,21 @@ def test_invented_value_is_retried_then_removed(fake_tools):
     assert llm.calls == compare_graph.MAX_ATTEMPTS
     assert result["explanation"] is None
     assert result["metrics_diff"]  # the computed comparison is still returned
+
+
+def test_comparison_the_wrong_way_round_is_detected():
+    metrics = metrics_diff(SLICE_A, SLICE_B)  # drawdown: A 10.00%, B 6.00%
+    assert wrong_directions("B had a larger drawdown than A.", metrics) == ["B had a larger drawdown"]
+    assert wrong_directions("The larger drawdown in Simulation B hurt it.", metrics) == ["larger drawdown in Simulation B"]
+    assert wrong_directions("A's higher Sharpe ratio and the smaller drawdown of B.", metrics) == []
+    assert wrong_directions("Simulation A had a slightly lower total return.", metrics) == [
+        "Simulation A had a slightly lower total return"]
+
+
+def test_wrong_direction_is_retried(fake_tools):
+    wrong = "Simulation A performed better with 8.00%, but B had a larger drawdown of 6.00%."
+    result, llm = run_graph([wrong, GOOD])
+    assert llm.calls == 2 and result["explanation"] == GOOD
 
 
 def test_promises_are_rejected(fake_tools):

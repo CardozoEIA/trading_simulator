@@ -13,6 +13,7 @@ class ProposedChange(BaseModel):
     label: str
     current: float | None = None
     suggested: float
+    plan: list[str] = Field(default_factory=list)  # ordered what-if steps, shown before confirmation
 
 
 class ChatResponse(BaseModel):

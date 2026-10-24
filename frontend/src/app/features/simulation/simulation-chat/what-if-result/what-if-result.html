@@ -1,0 +1,39 @@
+@let r = result();
+<div class="what-if-result" role="group" aria-label="What-if result">
+  <div class="what-if-header">
+    <strong>What-if: {{ r.change.label }} {{ r.change.current !== null ? r.change.current + '% → ' : '' }}{{ r.change.suggested }}%</strong>
+    <button type="button" class="link" aria-label="Close the what-if result" (click)="closed.emit()">Close</button>
+  </div>
+  <p class="note">{{ r.message }}</p>
+
+  @if (r.status === 'COMPLETED' && r.comparison; as c) {
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th scope="col">Metric</th><th scope="col">Original</th><th scope="col">What-if</th><th scope="col">Change</th></tr>
+        </thead>
+        <tbody>
+          @for (m of metrics(); track m.metric) {
+            <tr>
+              <th scope="row">{{ m.label }}</th>
+              <td [class.better]="m.better === 'a'">{{ m.a_display }}</td>
+              <td [class.better]="m.better === 'b'">{{ m.b_display }}</td>
+              <td>{{ m.delta_display }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @if (c.explanation) {
+      <p class="explanation">{{ c.explanation }}</p>
+    }
+    <div class="links">
+      <a [routerLink]="['/simulation-decisions', r.what_if_id]">Open the new simulation</a>
+      <a [routerLink]="['/compare']" [queryParams]="{ a: r.original_id, b: r.what_if_id }">Full comparison</a>
+    </div>
+  } @else {
+    <span class="estimate-tag">Qualitative estimate · not a simulation result</span>
+    <p class="explanation">{{ r.fallback }}</p>
+  }
+  <p class="disclaimer">Based on historical data only. Not financial advice or a guarantee of future results.</p>
+</div>

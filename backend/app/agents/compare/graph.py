@@ -4,7 +4,8 @@
     START -> fetch_a --+
                        +-> diff -> explain -> verify -> END
     START -> fetch_b --+             ^           |
-                                     +-- retry --+   (values not in the facts, or promises)
+                                     +-- retry --+   (values not in the facts, comparisons the
+                                                      wrong way round, or promises)
 
 The fetch nodes call the student-bound tools (ownership checked on every call);
 diff is pure Python; the model only explains the diff and verify rejects any
@@ -21,6 +22,7 @@ from app.agents.common.llm import get_chat_model
 from app.agents.compare.diff import configuration_diff, diff_facts, metrics_diff, winner
 from app.agents.compare.prompts import COMPARE_SYSTEM_PROMPT
 from app.agents.compare.tools import build_compare_tools
+from app.agents.compare.verify import wrong_directions
 from app.agents.insights.verify import makes_promises, unverified_values
 
 logger = logging.getLogger(__name__)
@@ -105,6 +107,12 @@ def build_compare_graph(llm=None):
             return {"feedback": (
                 f"these values are not in the facts: {', '.join(sorted(set(bad)))}. "
                 "Use only numbers and dates copied exactly from the facts."
+            )}
+        wrong = wrong_directions(draft, state["metrics_diff"])
+        if wrong:
+            return {"feedback": (
+                f"these comparisons are the wrong way round: {'; '.join(wrong)}. "
+                "Check in the facts which simulation had the larger and the smaller value."
             )}
         return {"explanation": draft, "feedback": None}
 

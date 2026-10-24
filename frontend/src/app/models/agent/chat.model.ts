@@ -3,6 +3,7 @@ export interface ProposedChange {
   label: string;
   current: number | null;
   suggested: number;
+  plan: string[];
 }
 
 export interface ChatResponse {

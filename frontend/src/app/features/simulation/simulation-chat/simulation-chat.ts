@@ -4,7 +4,10 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { ChatService } from '@core/api/chat.service';
+import { Simulations } from '@core/api/simulations';
 import { ChatStreamEvent, PENDING_RISK_CHANGE_KEY, ProposedChange } from '@models/agent/chat.model';
+import { RiskParameter, WhatIfResult as WhatIfResultData } from '@models/agent/what-if.model';
+import { WhatIfResult } from './what-if-result/what-if-result';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -21,7 +24,7 @@ const DEFAULT_SUGGESTIONS = [
 
 @Component({
   selector: 'app-simulation-chat',
-  imports: [FormsModule],
+  imports: [FormsModule, WhatIfResult],
   templateUrl: './simulation-chat.html',
   styleUrl: './simulation-chat.css',
 })
@@ -29,6 +32,7 @@ export class SimulationChat implements OnInit, OnDestroy {
   simulationId = input.required<string>();
 
   private chatService = inject(ChatService);
+  private simulations = inject(Simulations);
   private router = inject(Router);
 
   readonly maxLength = 500;
@@ -39,6 +43,12 @@ export class SimulationChat implements OnInit, OnDestroy {
   proposal = signal<ProposedChange | null>(null);
   draft = signal('');
   sending = signal(false);
+
+  // --- What-if (US-28): runs only when the student presses "Run what-if" ---
+  whatIfRunning = signal(false);
+  whatIfResult = signal<WhatIfResultData | null>(null);
+  whatIfError = signal('');
+  private whatIfSubscription: Subscription | null = null;
 
   private subscription: Subscription | null = null;
   private scrollBox = viewChild<ElementRef<HTMLElement>>('scrollBox');
@@ -63,6 +73,7 @@ export class SimulationChat implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
+    this.whatIfSubscription?.unsubscribe();
   }
 
   send(text: string = this.draft()): void {
@@ -89,6 +100,29 @@ export class SimulationChat implements OnInit, OnDestroy {
         }
       },
     });
+  }
+
+  runWhatIf(): void {
+    const proposal = this.proposal();
+    if (!proposal || this.whatIfRunning()) return;
+
+    this.whatIfRunning.set(true);
+    this.whatIfResult.set(null);
+    this.whatIfError.set('');
+    this.whatIfSubscription = this.simulations
+      .runWhatIf(this.simulationId(), proposal.parameter as RiskParameter, proposal.suggested)
+      .subscribe({
+        next: (result) => {
+          this.whatIfResult.set(result);
+          this.proposal.set(null);
+          this.whatIfRunning.set(false);
+          this.scrollToBottom();
+        },
+        error: (error) => {
+          this.whatIfError.set(error?.error?.detail || 'Could not run the what-if. Please try again.');
+          this.whatIfRunning.set(false);
+        },
+      });
   }
 
   confirmProposal(): void {
