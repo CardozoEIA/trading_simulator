@@ -48,6 +48,8 @@ flowchart LR
     API -->|chat + embeddings<br/>vía Cloudflare Tunnel| OL[Ollama local<br/>qwen2.5:7b · nomic-embed-text]
 ```
 
+Cómo funcionan los 8 agentes (qué inicia cada uno, sus nodos y las herramientas que usa cada nodo): **[docs/agents.md](docs/agents.md)**.
+
 ### Grafo del agente de conocimiento (LangGraph)
 
 ```mermaid

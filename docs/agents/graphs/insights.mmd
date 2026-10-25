@@ -1,0 +1,20 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	gather_facts(gather_facts)
+	explain(explain)
+	verify(verify)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> gather_facts;
+	explain --> verify;
+	gather_facts -.-> __end__;
+	gather_facts -.-> explain;
+	verify -.-> __end__;
+	verify -.-> explain;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc

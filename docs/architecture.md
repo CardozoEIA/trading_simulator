@@ -19,7 +19,7 @@ app/
   main.py          FastAPI app, CORS, routers
   core/            config, Supabase clients, auth dependency (get_current_user)
   modules/         one package per feature: routes -> service -> (schema)   [controllers]
-  agents/          LangGraph graphs: explain, chat, insights, knowledge (RAG)
+  agents/          LangGraph graphs: explain, chat, insights, compare, report, setup, what-if, knowledge (RAG)
   vectorstore/     embeddings + pgvector repository
   services/        pure computation: indicators, strategies, benchmark, historical data
 ```
@@ -67,6 +67,4 @@ flowchart TD
 
 ## 5. Simulation agents
 
-- **explain** (US-20): tool-calling ReAct agent that explains one decision using price, indicators, risk and regime tools.
-- **chat** (US-22/25): router + dedicated nodes, Postgres checkpointer, relevance-based memory.
-- **insights** (US-26): event-triggered graph `gather_facts -> explain -> verify`.
+The 8 LangGraph graphs (explain, chat, insights, compare, report, setup, what-if and knowledge), with one diagram per agent showing its nodes, edges and the tools each node uses, are described in **[agents.md](agents.md)**.
