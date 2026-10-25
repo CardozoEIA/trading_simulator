@@ -1,0 +1,26 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	validate_intent(validate_intent)
+	retrieve(retrieve)
+	grade(grade)
+	generate(generate)
+	refuse(refuse)
+	save_history(save_history)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> validate_intent;
+	generate --> save_history;
+	grade -.-> generate;
+	grade -.-> refuse;
+	refuse --> save_history;
+	retrieve --> grade;
+	validate_intent -.-> retrieve;
+	validate_intent -.-> save_history;
+	save_history --> __end__;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc
