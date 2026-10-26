@@ -3,6 +3,7 @@ from functools import lru_cache
 
 from fastapi import HTTPException, status
 
+from app.agents.common.tracing import tracing_config
 from app.agents.knowledge.graph import build_knowledge_graph
 from app.modules.knowledge import history
 
@@ -19,7 +20,10 @@ def _graph():
 
 def ask(user_id: str, message: str) -> dict:
     try:
-        result = _graph().invoke({"question": message, "user_id": user_id})
+        result = _graph().invoke(
+            {"question": message, "user_id": user_id},
+            config=tracing_config("knowledge", user_id, f"knowledge:{user_id}"),
+        )
     except Exception:
         # Ollama down or embeddings model missing.
         logger.exception("Knowledge agent failed")

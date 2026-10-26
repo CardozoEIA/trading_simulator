@@ -1,12 +1,16 @@
 # app/modules/agent/service.py
 from fastapi import HTTPException
 from langchain_core.messages import HumanMessage
+from app.agents.common.tracing import tracing_config
 from app.agents.explain.graph import build_agent_graph
 
 
 def explain_decision(simulation_id: str, user_id: str, date: str) -> str:
     graph = build_agent_graph(simulation_id, user_id)
-    config = {"configurable": {"thread_id": f"{simulation_id}:explain"}}
+    config = tracing_config(
+        "explain", user_id, simulation_id,
+        base={"configurable": {"thread_id": f"{simulation_id}:explain"}},
+    )
 
     try:
         result = graph.invoke(

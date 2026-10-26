@@ -74,7 +74,7 @@ def compare_backend(monkeypatch):
     monkeypatch.setattr(graph_module, "list_my_simulations", lambda user_id: HISTORY)
     monkeypatch.setattr(
         graph_module, "compare_simulations_text",
-        lambda simulation_id, other_id, user_id: calls.append((simulation_id, other_id, user_id)) or "COMPARISON",
+        lambda simulation_id, other_id, user_id, config=None: calls.append((simulation_id, other_id, user_id)) or "COMPARISON",
     )
     return calls
 

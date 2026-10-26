@@ -1,10 +1,12 @@
 import logging
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.runnables import RunnableConfig
 from langchain_ollama import ChatOllama
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
+from app.agents.common.tracing import child_config
 from app.agents.explain.graph import build_agent_graph
 from app.agents.chat.support.dates import (
     load_decision_dates,
@@ -172,17 +174,17 @@ def build_conversation_graph(
             "proposed_change": None,
         }
 
-    def explain_agent(state: SupervisorState) -> SupervisorState:
+    def explain_agent(state: SupervisorState, config: RunnableConfig) -> SupervisorState:
 
         date = state["last_date_discussed"]
 
         graph = build_agent_graph(simulation_id, user_id)
 
-        config = {
-            "configurable": {
-                "thread_id": f"{simulation_id}:conversation_explain"
-            }
-        }
+        # Keeps its own thread; with tracing on, it also appears inside this conversation's trace.
+        explain_config = child_config(
+            config,
+            configurable={"thread_id": f"{simulation_id}:conversation_explain"},
+        )
 
         try:
             result = graph.invoke(
@@ -193,7 +195,7 @@ def build_conversation_graph(
                         )
                     ]
                 },
-                config=config,
+                config=explain_config,
             )
 
             return {
@@ -263,14 +265,15 @@ def build_conversation_graph(
                 ]
             }
 
-    def compare_agent(state: SupervisorState) -> SupervisorState:
+    def compare_agent(state: SupervisorState, config: RunnableConfig) -> SupervisorState:
 
         try:
             return {
                 "messages": [
                     AIMessage(
                         content=compare_simulations_text(
-                            simulation_id, state["compare_with"], user_id
+                            simulation_id, state["compare_with"], user_id,
+                            config=child_config(config),
                         )
                     )
                 ]

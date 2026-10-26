@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 
 from fastapi import HTTPException
 
+from app.agents.common.tracing import tracing_config
 from app.agents.report.graph import build_report_graph
 from app.agents.report.render import render_markdown
 from app.agents.report.tools import load_report_data
@@ -36,7 +37,9 @@ def generate_report(simulation_id: str, user_id: str, llm=None) -> dict:
         raise HTTPException(status_code=503, detail=DATABASE_UNAVAILABLE)
 
     try:
-        result = build_report_graph(llm=llm).invoke({"data": data})
+        result = build_report_graph(llm=llm).invoke(
+            {"data": data}, config=tracing_config("report", user_id, simulation_id)
+        )
     except Exception:
         logger.exception("Report generation failed for simulation %s", simulation_id)
         raise HTTPException(status_code=503, detail=AGENT_UNAVAILABLE)

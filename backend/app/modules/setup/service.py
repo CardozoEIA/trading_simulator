@@ -4,6 +4,7 @@ import logging
 
 from fastapi import HTTPException
 
+from app.agents.common.tracing import tracing_config
 from app.agents.setup.graph import build_setup_graph
 
 logger = logging.getLogger(__name__)
@@ -11,9 +12,11 @@ logger = logging.getLogger(__name__)
 AGENT_UNAVAILABLE = "The agent could not be reached to read your description (is Ollama running?). Please try again."
 
 
-def parse_setup(description: str, llm=None, today=None) -> dict:
+def parse_setup(description: str, user_id: str | None = None, llm=None, today=None) -> dict:
     try:
-        result = build_setup_graph(llm=llm, today=today).invoke({"description": description})
+        result = build_setup_graph(llm=llm, today=today).invoke(
+            {"description": description}, config=tracing_config("setup", user_id)
+        )
     except HTTPException:
         raise  # 503 from the database while checking data availability
     except Exception:

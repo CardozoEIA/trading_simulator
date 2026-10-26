@@ -13,6 +13,7 @@ from fastapi import BackgroundTasks, HTTPException
 
 from app.core.supabase import supabase_admin as supabase
 from app.core.validation import is_valid_uuid
+from app.agents.common.tracing import tracing_config
 from app.agents.insights.graph import build_insights_graph
 from app.agents.insights.tools import highlights_for, load_simulation_data
 
@@ -65,7 +66,9 @@ def mark_pending(simulation_id: str) -> None:
 def generate_insights(simulation_id: str) -> None:
     """Run the highlights graph and store the explanations. Never raises (background task)."""
     try:
-        result = build_insights_graph().invoke({"simulation_id": simulation_id})
+        result = build_insights_graph().invoke(
+            {"simulation_id": simulation_id}, config=tracing_config("insights", session_id=simulation_id)
+        )
         explanations = result.get("explanations") or {}
         if explanations or not result.get("highlights"):
             _save(simulation_id, status="READY", insights=explanations, error=None, generated_at=_now())
