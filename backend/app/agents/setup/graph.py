@@ -18,6 +18,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import END, START, StateGraph
 
 from app.agents.common.llm import get_chat_model
+from app.agents.common.scope import looks_like_injection
 from app.agents.setup.parse import FIELD_QUESTIONS, FIELDS, coerce, strategy_label
 from app.agents.setup.prompts import SETUP_SYSTEM_PROMPT
 from app.modules.backtest.schema import BacktestConfiguration
@@ -26,6 +27,12 @@ from app.modules.backtest.service import validate_configuration
 logger = logging.getLogger(__name__)
 
 BACKTEST_FIELDS = ("asset", "start_date", "end_date", "initial_capital", "strategies")
+
+ONLY_SETUP = (
+    "I can only help you set up a backtest. Describe the simulation you want: the asset, the period, "
+    "the initial capital, the strategies and the risk limits. For example: \"Backtest the S&P 500 "
+    "during 2023 with $10,000 using SMA, a 5% stop-loss, a 50% max position and a 20% max drawdown.\""
+)
 
 
 class SetupState(TypedDict, total=False):
@@ -83,6 +90,8 @@ def build_setup_graph(llm=None, today: date | None = None):
     llm = llm or get_chat_model(format="json")
 
     def extract(state: SetupState) -> SetupState:
+        if looks_like_injection(state["description"]):
+            return {"raw": {}}  # never sent to the model; answered with ONLY_SETUP
         request = f"Today is {(today or date.today()).isoformat()}.\n\nDescription:\n{state['description']}"
         response = llm.invoke([SystemMessage(content=SETUP_SYSTEM_PROMPT), HumanMessage(content=request)])
         try:
@@ -112,6 +121,9 @@ def build_setup_graph(llm=None, today: date | None = None):
 
     def ask_missing(state: SetupState) -> SetupState:
         problems = state["problems"]
+        if not problems and len(state["missing_fields"]) == len(FIELDS):
+            # nothing about a simulation in the text (off topic or empty): no field-by-field list
+            return {"status": "incomplete", "message": ONLY_SETUP}
         lines = []
         known = understood(state["values"])
         if known:

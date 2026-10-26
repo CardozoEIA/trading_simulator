@@ -6,6 +6,7 @@ from langchain_ollama import ChatOllama
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
+from app.agents.common.scope import OFF_TOPIC_REPLY, looks_like_injection
 from app.agents.common.tracing import child_config
 from app.agents.explain.graph import build_agent_graph
 from app.agents.chat.support.dates import (
@@ -13,6 +14,7 @@ from app.agents.chat.support.dates import (
     resolve_date,
 )
 from app.agents.chat.prompts import build_conceptual_prompt
+from app.agents.chat.support.glossary import mentions_glossary_term
 from app.agents.chat.support.comparisons import resolve_comparison
 from app.agents.chat.support.proposals import (
     build_proposal,
@@ -32,6 +34,13 @@ from app.agents.chat.tools import (
 )
 
 logger = logging.getLogger(__name__)
+
+CLARIFY_TEXT = (
+    "I'm not sure what you mean. You can ask why the strategy bought or sold on a day "
+    "(for example \"Why did it buy on day 12?\"), for an overview of this simulation, whether it "
+    "beat buy & hold, what a trading term means, to try a different risk limit, or to compare "
+    "it with another of your simulations."
+)
 
 MODEL_NAME = "qwen2.5:7b"
 OLLAMA_TIMEOUT_SECONDS = 60
@@ -65,10 +74,18 @@ def build_conversation_graph(
         question = state["messages"][-1].content
         last_date = state.get("last_date_discussed")
 
-        decision = classify_question(llm, question, last_date)
+        if looks_like_injection(question):
+            # Checked before any model call: an attempt to override the rules is never routed.
+            decision = {"next_step": "off_topic", "message": None}
+        else:
+            decision = classify_question(llm, question, last_date)
 
         next_step = decision["next_step"]
-        message = decision["message"]
+        # The router's own wording is never shown: it could echo an off-topic request.
+        message = CLARIFY_TEXT
+
+        if next_step == "conceptual" and not mentions_glossary_term(question):
+            next_step = "off_topic"
         selected_date = None
         proposal = None
         compare_with = None
@@ -158,6 +175,13 @@ def build_conversation_graph(
                 "next_step": next_step,
                 "proposed_change": None,
                 "compare_with": compare_with,
+            }
+
+        if next_step == "off_topic":
+            return {
+                "next_step": next_step,
+                "proposed_change": None,
+                "messages": [AIMessage(content=OFF_TOPIC_REPLY)],
             }
 
         if next_step == "clarify":
@@ -363,6 +387,7 @@ def build_conversation_graph(
             "conceptual": "conceptual_agent",
             "compare": "compare_agent",
             "propose_change": END,
+            "off_topic": END,
             "clarify": END,
         },
     )
