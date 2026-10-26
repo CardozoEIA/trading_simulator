@@ -221,3 +221,11 @@ def reset_conversation(simulation_id: str, user_id: str) -> None:
         get_checkpointer().delete_thread(_thread_id(simulation_id, user_id))
     except Exception:
         logger.exception("Could not clear the in-memory conversation")
+
+
+def forget_conversation(simulation_id: str, user_id: str) -> None:
+    """Drops the stored conversation state of a deleted simulation. Never raises."""
+    try:
+        get_checkpointer().delete_thread(_thread_id(simulation_id, user_id))
+    except Exception:
+        logger.exception("Could not delete the conversation of simulation %s", simulation_id)

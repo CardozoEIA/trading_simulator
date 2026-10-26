@@ -60,6 +60,31 @@ export class SimulationHistory implements OnInit {
     this.router.navigate(['/compare'], { queryParams: { a: a.id, b: b.id } });
   }
 
+  // --- Delete a simulation ---
+  deletingId: string | null = null;
+
+  async delete(item: SimulationHistoryItem): Promise<void> {
+    if (this.deletingId) return;
+    const confirmed = await this.alert.confirm(
+      `Delete the ${item.asset} simulation from ${item.start_date} to ${item.end_date}? ` +
+      'Its results, decisions and chat will be removed. This cannot be undone.',
+    );
+    if (!confirmed) return;
+
+    this.deletingId = item.id;
+    this.simulations.deleteSimulation(item.id).subscribe({
+      next: () => {
+        this.history = this.history.filter(h => h.id !== item.id);
+        this.selected = this.selected.filter(id => id !== item.id);
+        this.deletingId = null;
+      },
+      error: (error) => {
+        this.alert.showApiError(error);
+        this.deletingId = null;
+      },
+    });
+  }
+
   statusLabel(status: string): string {
     if (status === 'FINISHED') return 'Completed';
     if (status === 'STOPPED_BY_RISK') return 'Stopped by risk';

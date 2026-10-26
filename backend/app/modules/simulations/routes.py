@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends, Response
 
 from app.core.dependencies import get_current_user
 from app.modules.simulations.schema import (
@@ -13,8 +13,10 @@ from app.modules.simulations.service import (
     start_simulation,
     get_simulation_status,
     build_configuration_summary,
-    get_simulation_history
+    get_simulation_history,
+    delete_simulation,
 )
+from app.modules.chat.service import forget_conversation
 from app.modules.insights.service import mark_pending, on_simulation_finished
 
 logger = logging.getLogger(__name__)
@@ -61,3 +63,10 @@ def status(
 @router.get("/history", response_model=list[SimulationHistoryItem])
 def history(current_user=Depends(get_current_user)):
     return get_simulation_history(current_user.id)
+
+
+@router.delete("/{simulation_id}", status_code=204)
+def delete(simulation_id: str, current_user=Depends(get_current_user)):
+    delete_simulation(simulation_id, current_user.id)
+    forget_conversation(simulation_id, current_user.id)
+    return Response(status_code=204)
