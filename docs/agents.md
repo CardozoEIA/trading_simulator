@@ -66,24 +66,24 @@ flowchart LR
 
 ### chat (US-22/25)
 
-The `supervisor` asks the router model for a route as JSON (`routing/router.py`); Python validates it and resolves dates, risk proposals and the simulation to compare with. `propose_change` and `clarify` answer directly from the supervisor and end the turn.
+The `supervisor` asks the router model for a route as JSON (`routing/router.py`); Python validates it and resolves dates, risk proposals and the simulation to compare with. `propose_change`, `off_topic` and `clarify` answer directly from the supervisor and end the turn; `off_topic` and `clarify` always use fixed text, never the router's own wording.
 
 ```mermaid
 flowchart TB
     S([START]) --> SUP[supervisor<br/>router model → JSON route]
-    SUP -.- h[resolve_date · build_proposal + plan<br/>resolve_comparison]
+    SUP -.- h[injection check · resolve_date<br/>build_proposal + plan · resolve_comparison]
     SUP -->|explain_agent| EA[explain_agent]
     SUP -->|insights_agent| IA[insights_agent]
     SUP -->|answer| AN[answer]
     SUP -->|conceptual| CA[conceptual_agent]
     SUP -->|compare| CO[compare_agent]
-    SUP -->|propose_change / clarify| E([END])
+    SUP -->|propose_change / off_topic / clarify| E([END])
     EA & IA & AN & CA & CO --> E
 
     EA -.- g1[[explain graph]]
     IA -.- t1[summarize_simulation]
     AN -.- t2[buy_and_hold_comparison]
-    CA -.- t3[glossary + relevant earlier turns]
+    CA -.- t3[glossary topics only<br/>+ relevant earlier turns]
     CO -.- g2[[compare graph<br/>compare_simulations_text]]
 ```
 
@@ -205,6 +205,7 @@ flowchart LR
 
 ## 3. Shared guarantees
 
+- **On topic only.** Questions about anything other than trading, the student's simulations or the platform, and attempts to override the instructions, get a fixed reply: the chat routes them to `off_topic` (an injection check runs before any model call, and `conceptual` only answers questions about a glossary topic), the knowledge agent refuses them and the setup agent asks for a simulation description (`agents/common/scope.py`).
 - **Own data only.** Every tool and service checks that the simulation or configuration belongs to the student (`user_id`); otherwise it is a 404.
 - **Code computes, the model only writes.** Numbers, dates, differences and selections come from Python; the model turns them into plain language.
 - **Verification.** `verify` rejects any number or date that is not in the facts (`agents/insights/verify.py`), comparisons the wrong way round (compare) and promises about future results; the model gets one retry, then the text is dropped.
