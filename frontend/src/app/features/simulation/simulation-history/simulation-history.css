@@ -158,6 +158,35 @@ tr.selected td { background-color: rgba(201, 161, 92, 0.08); }
   white-space: nowrap;
 }
 
+/* --- Delete --- */
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.delete-btn {
+  background: none;
+  border: 1px solid #E0605E;
+  color: #E0605E;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.delete-btn:hover:not(:disabled) {
+  background-color: #E0605E;
+  color: var(--background-main);
+}
+.delete-btn:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+.delete-btn:focus-visible {
+  outline: 2px solid #E0605E;
+  outline-offset: 2px;
+}
+
 .back-link {
   color: var(--golden-accent);
   text-decoration: none;

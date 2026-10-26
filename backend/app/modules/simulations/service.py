@@ -294,3 +294,44 @@ def get_simulation_history(user_id: str) -> list[dict]:
         })
 
     return history
+
+
+# Rows that belong to one simulation, deleted before the simulation itself.
+# (simulation_final_values is a view over the equity curve: nothing to delete there.)
+SIMULATION_CHILD_TABLES = (
+    "simulation_decisions",
+    "simulation_trades",
+    "simulation_equity_curve",
+    "simulation_signals",
+    "simulation_insights",
+    "chat_messages",
+)
+
+
+def delete_simulation(simulation_id: str, user_id: str) -> None:
+    """Deletes one of the student's simulations and everything recorded for it.
+
+    Its configuration is deleted too when no other simulation uses it. Children go first,
+    so a failure halfway leaves the simulation in the history and deleting again finishes it.
+    """
+    simulation = get_simulation_status(simulation_id, user_id)  # 404 when missing or not owned
+    if simulation["status"] == "RUNNING":
+        raise HTTPException(status_code=409, detail="The simulation is still running")
+
+    configuration_id = simulation["configuration_id"]
+    try:
+        for table in SIMULATION_CHILD_TABLES:
+            supabase.table(table).delete().eq("simulation_id", simulation_id).execute()
+        supabase.table("simulations").delete().eq("id", simulation_id).eq("user_id", user_id).execute()
+
+        still_used = (
+            supabase.table("simulations").select("id")
+            .eq("configuration_id", configuration_id).limit(1).execute()
+        ).data
+        if not still_used:
+            supabase.table("risk_configurations").delete() \
+                .eq("configuration_id", configuration_id).eq("user_id", user_id).execute()
+            supabase.table("backtest_configurations").delete() \
+                .eq("id", configuration_id).eq("user_id", user_id).execute()
+    except Exception:
+        raise HTTPException(status_code=503, detail="Could not connect to the database, please try again")

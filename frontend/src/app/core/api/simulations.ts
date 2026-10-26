@@ -56,6 +56,9 @@ export class Simulations {
   public getMetrics(simulationId: string) {
     return this.http.get<SimulationMetrics>(`${this.baseUrl}/results/${simulationId}/metrics`);
   }
+  public deleteSimulation(simulationId: string) {
+    return this.http.delete<void>(`${this.baseUrl}/simulations/${simulationId}`);
+  }
   public getHistory() {
     return this.http.get<SimulationHistoryItem[]>(`${this.baseUrl}/simulations/history`);
   }
