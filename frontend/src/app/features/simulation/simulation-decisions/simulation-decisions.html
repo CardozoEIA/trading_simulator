@@ -1,274 +1,252 @@
 <div class="results-container">
   <span class="section-tag">SIMULATION RESULTS</span>
-  <div class="page-header">
-    <h1>How your strategy performed</h1>
-    @if (simulationId && summary && simulationStatus !== 'RUNNING') {
-    <button type="button" class="report-btn" (click)="reportOpen = true">Generate report</button>
-    }
-  </div>
 
   @if (loading) {
-  <p class="loading-text">Loading results…</p>
+  <p class="muted">Loading results…</p>
   } @else {
   @if (summary) {
-  <div class="hero-return" [class.positive]="totalReturnPct >= 0" [class.negative]="totalReturnPct < 0">
-    <span class="hero-label">{{ summary.asset }} · {{ summary.strategies.join(', ') }}</span>
-    <span class="hero-value">{{ totalReturnPct >= 0 ? '+' : '' }}{{ totalReturnPct | number:'1.2-2' }}%</span>
-    <span class="hero-sub">{{ summary.start_date }} → {{ summary.end_date }}</span>
-    @if (simulationStatus === 'STOPPED_BY_RISK') {
-    <span class="status-tag stopped">Stopped due to risk</span>
-    } @else if (simulationStatus === 'FINISHED') {
-    <span class="status-tag finished">Completed normally</span>
+  <header class="page-header">
+    <div>
+      <h1>{{ summary.asset }} · {{ summary.strategies.join(', ') }}</h1>
+      <p class="subtitle">
+        <span class="mono">{{ summary.start_date }} → {{ summary.end_date }}</span>
+        @if (simulationStatus === 'STOPPED_BY_RISK') {
+        <span class="status-pill stopped">Stopped by risk</span>
+        } @else if (simulationStatus === 'FINISHED') {
+        <span class="status-pill finished">Completed</span>
+        }
+      </p>
+      @if (stopReason) {
+      <p class="muted small">{{ stopReason }}</p>
+      }
+    </div>
+    @if (simulationId && simulationStatus !== 'RUNNING') {
+    <button type="button" class="ghost-btn" (click)="reportOpen = true">Generate report</button>
     }
-    @if (stopReason) {
-    <p class="stop-reason">{{ stopReason }}</p>
+  </header>
+
+  <section class="summary-card" aria-label="Result">
+    <span class="summary-label">Total return</span>
+    <span class="summary-value" [class.positive]="totalReturnPct >= 0" [class.negative]="totalReturnPct < 0">
+      {{ totalReturnPct >= 0 ? '+' : '' }}{{ totalReturnPct | number:'1.2-2' }}%
+    </span>
+    <span class="summary-line mono">
+      ${{ summary.initial_capital | number:'1.2-2' }} → ${{ finalValue | number:'1.2-2' }}
+      ({{ profitLoss >= 0 ? '+' : '-' }}${{ (profitLoss < 0 ? -profitLoss : profitLoss) | number:'1.2-2' }})
+    </span>
+    @if (summary.benchmark) {
+    <span class="summary-line">
+      Buy &amp; hold: {{ summary.benchmark.total_return_pct >= 0 ? '+' : '' }}{{ summary.benchmark.total_return_pct |
+      number:'1.2-2' }}% ·
+      <strong [class.positive]="beatBenchmark" [class.negative]="!beatBenchmark">
+        {{ beatBenchmark ? 'beat it' : 'trailed it' }} by {{ benchmarkGap | number:'1.2-2' }} pts
+      </strong>
+      @if (highlight('BUY_AND_HOLD'); as bh) {
+      <button type="button" class="why-btn" (click)="openHighlight(bh)">Why?</button>
+      }
+    </span>
     }
-    @if (headlineHighlights.length) {
-    <div class="hl-row-chips">
-      @for (h of headlineHighlights; track h.kind) {
-      <button type="button" class="hl-chip on-light" [class.positive]="h.tone === 'positive'"
+    @if (highlightList.length) {
+    <div class="chips">
+      @for (h of highlightList; track h.kind) {
+      <button type="button" class="hl-chip" [class.positive]="h.tone === 'positive'"
         [class.negative]="h.tone === 'negative'" (click)="openHighlight(h)">{{ h.label }}</button>
       }
     </div>
+    @if (insights?.status === 'PENDING') {
+    <p class="muted small">The agent is reviewing this run. Click a highlight to read its explanation.</p>
     }
-    @if (insights?.status === 'PENDING' && insights?.highlights?.length) {
-    <p class="hl-pending">The agent is reviewing this run. Click a highlight to read its explanation.</p>
     }
-  </div>
-
-  <div class="stat-grid">
-    <div class="stat-card">
-      <span class="stat-label">Initial capital</span>
-      <span class="stat-value">${{ summary.initial_capital | number:'1.2-2' }}</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-label">Final value</span>
-      <span class="stat-value">${{ finalValue | number:'1.2-2' }}</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-label">Profit / loss</span>
-      <span class="stat-value">${{ (finalValue - summary.initial_capital) | number:'1.2-2' }}</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-label">Trades executed</span>
-      <span class="stat-value">{{ trades.length }}</span>
-    </div>
-  </div>
-
-  @if (isOpenPosition) {
-  <p class="note">Position still open at the end of the period — the last BUY has no matching SELL yet.</p>
-  }
-  @if (unexecutedSignals > 0) {
-  <p class="note">{{ unexecutedSignals }} strategy signal(s) could not be executed (e.g. a SELL signal with no open
-    position).</p>
-  }
-
-  <h2>Configuration</h2>
-  <div class="stat-grid">
-    <div class="stat-card">
-      <span class="stat-label">Period</span>
-      <span class="stat-value small">{{ summary.start_date }} → {{ summary.end_date }}</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-label">Strategies</span>
-      <span class="stat-value small">{{ summary.strategies.join(', ') }}</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-label">Stop-loss</span>
-      <span class="stat-value">{{ summary.risk.stop_loss_percentage }}%</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-label">Max position size</span>
-      <span class="stat-value">{{ summary.risk.max_position_size }}%</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-label">Max drawdown</span>
-      <span class="stat-value">{{ summary.risk.max_drawdown }}%</span>
-    </div>
-  </div>
+  </section>
   }
 
   @if (metrics) {
-  <h2>Performance metrics</h2>
-  <div class="stat-grid">
-    <div class="stat-card">
-      <span class="stat-label">Total return</span>
-      <span class="stat-value">{{ metrics.total_return_pct | number:'1.2-2' }}%</span>
+  <div class="metric-row">
+    <div class="metric">
+      <span class="metric-label">Sharpe ratio <app-help-hint topic="sharpeRatio" /></span>
+      <span class="metric-value">{{ metrics.sharpe_ratio | number:'1.2-2' }}</span>
     </div>
-    <div class="stat-card">
-      <span class="stat-label">Sharpe ratio <app-help-hint topic="sharpeRatio" /></span>
-      <span class="stat-value">{{ metrics.sharpe_ratio | number:'1.2-2' }}</span>
+    <div class="metric">
+      <span class="metric-label">Max drawdown <app-help-hint topic="drawdownResult" /></span>
+      <span class="metric-value">{{ metrics.max_drawdown_pct | number:'1.2-2' }}%</span>
     </div>
-    <div class="stat-card">
-      <span class="stat-label">Max drawdown <app-help-hint topic="drawdownResult" /></span>
-      <span class="stat-value">{{ metrics.max_drawdown_pct | number:'1.2-2' }}%</span>
+    <div class="metric">
+      <span class="metric-label">Win rate <app-help-hint topic="winRate" /></span>
+      <span class="metric-value">{{ metrics.total_trades ? (metrics.win_rate | number:'1.0-0') + '%' : '—' }}</span>
+      @if (metrics.total_trades) {
+      <span class="metric-sub">{{ metrics.winning_trades }} of {{ metrics.total_trades }} trades won</span>
+      }
     </div>
-    <div class="stat-card">
-      <span class="stat-label">Win rate <app-help-hint topic="winRate" /></span>
-      <span class="stat-value">{{ metrics.total_trades ? (metrics.win_rate | number:'1.0-0') + '%' : '—' }}</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-label">Profit factor <app-help-hint topic="profitFactor" /></span> <span class="stat-value">{{
-        metrics.total_trades ? (metrics.profit_factor !== null ? (metrics.profit_factor |
-        number:'1.2-2') : '∞') : '—' }}</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-label">Winning trades</span>
-      <span class="stat-value">{{ metrics.winning_trades }}/{{ metrics.total_trades }}</span>
+    <div class="metric">
+      <span class="metric-label">Trades executed</span>
+      <span class="metric-value">{{ trades.length }}</span>
     </div>
   </div>
   }
 
-  @if (summary?.benchmark) {
-  <h2>Benchmark comparison</h2>
-  <div class="benchmark-compare">
-    <div class="benchmark-col" [class.winner]="beatBenchmark">
-      <span class="benchmark-label">Your strategy</span>
-      <span class="benchmark-value" [class.positive]="totalReturnPct >= 0" [class.negative]="totalReturnPct < 0">
-        {{ totalReturnPct >= 0 ? '+' : '' }}{{ totalReturnPct | number:'1.2-2' }}%
-      </span>
-      <span class="benchmark-sub">${{ finalValue | number:'1.2-2' }}</span>
-    </div>
-    <div class="benchmark-vs">vs</div>
-    <div class="benchmark-col" [class.winner]="!beatBenchmark">
-      <span class="benchmark-label">Buy &amp; hold ({{ summary!.asset }})</span>
-      <span class="benchmark-value" [class.positive]="summary!.benchmark.total_return_pct >= 0"
-        [class.negative]="summary!.benchmark.total_return_pct < 0">
-        {{ summary!.benchmark.total_return_pct >= 0 ? '+' : '' }}{{ summary!.benchmark.total_return_pct | number:'1.2-2'
-        }}%
-      </span>
-      <span class="benchmark-sub">${{ summary!.benchmark.final_capital | number:'1.2-2' }}</span>
-    </div>
-  </div>
-  <p class="benchmark-verdict">
-    {{ beatBenchmark ? 'Your strategy beat' : 'Your strategy trailed' }} buy &amp; hold by
-    {{ (benchmarkDeltaPct! < 0 ? -benchmarkDeltaPct! : benchmarkDeltaPct!) | number:'1.2-2' }} points over the same
-      period. </p>
-      }
+  @if (equityCurve.length > 1) {
+  <h2>Capital evolution</h2>
+  <app-equity-chart [equityCurve]="equityCurve" [trades]="trades" [highlights]="chartMarkers"
+    [initialCapital]="summary?.initial_capital ?? null">
+  </app-equity-chart>
+  }
 
-      @if (equityCurve.length > 1) {
-      <h2>Capital evolution</h2>
-      @if (chartHighlights.length) {
-      <div class="hl-row-chips">
-        @for (h of chartHighlights; track h.kind) {
-        <button type="button" class="hl-chip" [class.positive]="h.tone === 'positive'"
-          [class.negative]="h.tone === 'negative'" (click)="openHighlight(h)">{{ h.label }}</button>
-        }
+  <h2>Details</h2>
+  <div class="details">
+    @if (summary) {
+    <app-collapsible title="Configuration and all metrics">
+      <div class="facts">
+        <dl>
+          <div><dt>Period</dt><dd>{{ summary.start_date }} → {{ summary.end_date }}</dd></div>
+          <div><dt>Strategies</dt><dd>{{ summary.strategies.join(', ') }}</dd></div>
+          <div><dt>Initial capital</dt><dd>${{ summary.initial_capital | number:'1.2-2' }}</dd></div>
+          <div><dt>Stop-loss</dt><dd>{{ summary.risk.stop_loss_percentage }}%</dd></div>
+          <div><dt>Max position size</dt><dd>{{ summary.risk.max_position_size }}%</dd></div>
+          <div><dt>Max drawdown limit</dt><dd>{{ summary.risk.max_drawdown }}%</dd></div>
+        </dl>
+        <dl>
+          <div><dt>Final value</dt><dd>${{ finalValue | number:'1.2-2' }}</dd></div>
+          <div><dt>Profit / loss</dt><dd>${{ profitLoss | number:'1.2-2' }}</dd></div>
+          @if (metrics) {
+          <div>
+            <dt>Profit factor <app-help-hint topic="profitFactor" /></dt>
+            <dd>{{ metrics.total_trades ? (metrics.profit_factor !== null ? (metrics.profit_factor | number:'1.2-2') :
+              '∞') : '—' }}</dd>
+          </div>
+          <div><dt>Completed trades</dt><dd>{{ metrics.total_trades }}</dd></div>
+          }
+          @if (summary.benchmark) {
+          <div><dt>Buy &amp; hold return</dt><dd>{{ summary.benchmark.total_return_pct | number:'1.2-2' }}%</dd></div>
+          <div><dt>Buy &amp; hold final value</dt><dd>${{ summary.benchmark.final_capital | number:'1.2-2' }}</dd></div>
+          }
+        </dl>
+      </div>
+    </app-collapsible>
+    }
+
+    <app-collapsible title="Trades" [meta]="trades.length + ' executed'">
+      @if (trades.length === 0) {
+      <p class="muted">No trades were executed during this simulation.</p>
+      } @else {
+      @if (isOpenPosition) {
+      <p class="muted small">The position was still open at the end: the last BUY has no matching SELL.</p>
+      }
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Cash after</th>
+              <th>Portfolio value</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (t of trades; track t.id) {
+            @let hl = tradeHighlight(t);
+            <tr [class.hl-trade]="hl">
+              <td class="mono">{{ t.date }}</td>
+              <td class="type-cell">
+                <span class="badge" [class.buy]="t.type === 'BUY'" [class.sell]="t.type === 'SELL'">{{ t.type }}</span>
+                @if (hl && t.type === 'SELL') {
+                <button type="button" class="hl-chip small" [class.positive]="hl.tone === 'positive'"
+                  [class.negative]="hl.tone === 'negative'" (click)="openHighlight(hl)">
+                  {{ hl.kind === 'BEST_TRADE' ? 'Best trade' : 'Worst trade' }}
+                </button>
+                }
+              </td>
+              <td class="mono">${{ t.price | number:'1.2-2' }}</td>
+              <td class="mono">{{ t.quantity | number:'1.4-4' }}</td>
+              <td class="mono">${{ t.cash_after | number:'1.2-2' }}</td>
+              <td class="mono">${{ t.portfolio_value_after | number:'1.2-2' }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
       </div>
       }
-      <app-equity-chart [equityCurve]="equityCurve" [trades]="trades" [highlights]="chartMarkers"
-        [initialCapital]="summary?.initial_capital ?? null">
-      </app-equity-chart>
-      }
+    </app-collapsible>
 
-      <h2>Trades</h2>
-      @if (trades.length === 0) {
-      <p class="empty-text">No trades were executed during this simulation.</p>
-      } @else {
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Type</th>
-            <th>Price</th>
-            <th>Quantity</th>
-            <th>Cash after</th>
-            <th>Portfolio value</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (t of trades; track t.id) {
-          @let hl = tradeHighlight(t);
-          <tr [class.hl-trade]="hl">
-            <td class="mono">{{ t.date }}</td>
-            <td class="type-cell">
-              <span class="badge" [class.buy]="t.type === 'BUY'" [class.sell]="t.type === 'SELL'">{{ t.type }}</span>
-              @if (hl && t.type === 'SELL') {
-              <button type="button" class="hl-chip small" [class.positive]="hl.tone === 'positive'"
-                [class.negative]="hl.tone === 'negative'" (click)="openHighlight(hl)">
-                {{ hl.kind === 'BEST_TRADE' ? 'Best trade' : 'Worst trade' }}
-              </button>
-              }
-            </td>
-            <td class="mono">${{ t.price | number:'1.2-2' }}</td>
-            <td class="mono">{{ t.quantity | number:'1.4-4' }}</td>
-            <td class="mono">${{ t.cash_after | number:'1.2-2' }}</td>
-            <td class="mono">${{ t.portfolio_value_after | number:'1.2-2' }}</td>
-          </tr>
+    <app-collapsible title="Strategy signals" [meta]="signalDecisions.length + ' buy / sell'">
+      <div class="panel-bar">
+        <p class="muted small">
+          @if (unexecutedSignals > 0) {
+          {{ unexecutedSignals }} signal(s) could not be executed (for example a SELL with no open position).
+          } @else {
+          Every buy and sell signal of the strategy, with the indicators of that day.
           }
-        </tbody>
-      </table>
-      }
-
-      <div class="section-header">
-        <h2>Strategy signals</h2>
-        <button class="toggle-btn" (click)="showAllDecisions = !showAllDecisions">
-          {{ showAllDecisions ? 'Show BUY/SELL only' : 'Show all (incl. HOLD)' }}
+        </p>
+        <button type="button" class="ghost-btn small" (click)="showAllDecisions = !showAllDecisions">
+          {{ showAllDecisions ? 'Buy / sell only' : 'Include hold days' }}
         </button>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Action</th>
-            <th>Price</th>
-            <th>Reason</th>
-            <th>Executed</th>
-            <th>RSI</th>
-            <th>SMA short</th>
-            <th>SMA long</th>
-            <th>Rejection reason</th>
-            <th>Explain</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (d of (showAllDecisions ? decisions : signalDecisions); track d.id) {
-          <tr>
-            <td class="mono">{{ d.date }}</td>
-            <td><span class="badge" [class.buy]="d.action === 'BUY'" [class.sell]="d.action === 'SELL'"
-                [class.hold]="d.action === 'HOLD'">{{ d.action }}</span></td>
-            <td class="mono">${{ d.price | number:'1.2-2' }}</td>
-            <td>{{ d.reason }}</td>
-            <td>{{ d.executed ? '✓' : '—' }}</td>
-            <td class="mono">{{ getSignalForDate(d.date)?.rsi | number:'1.1-1' }}</td>
-            <td class="mono">{{ getSignalForDate(d.date)?.sma_short | number:'1.2-2' }}</td>
-            <td class="mono">{{ getSignalForDate(d.date)?.sma_long | number:'1.2-2' }}</td>
-            <td>{{ getUnexecutedReason(d) }}</td>
-            <td>
-              <button class="explain-btn" (click)="openExplanation(d.date)">Explain</button>
-            </td>
-          </tr>
-          }
-        </tbody>
-      </table>
-      }
-
-      @if (simulationId) {
-      <h2>Ask about this simulation</h2>
-      <app-simulation-chat [simulationId]="simulationId" />
-      }
-
-      <div class="back-links">
-        <a routerLink="/history">Back to history</a>
-        <a routerLink="/dashboard">Back to dashboard</a>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Action</th>
+              <th>Price</th>
+              <th>Reason</th>
+              <th>Executed</th>
+              <th>RSI</th>
+              <th>SMA short</th>
+              <th>SMA long</th>
+              <th>Not executed because</th>
+              <th><span class="sr-only">Explain</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of (showAllDecisions ? decisions : signalDecisions); track d.id) {
+            <tr>
+              <td class="mono">{{ d.date }}</td>
+              <td><span class="badge" [class.buy]="d.action === 'BUY'" [class.sell]="d.action === 'SELL'"
+                  [class.hold]="d.action === 'HOLD'">{{ d.action }}</span></td>
+              <td class="mono">${{ d.price | number:'1.2-2' }}</td>
+              <td>{{ d.reason }}</td>
+              <td>{{ d.executed ? '✓' : '—' }}</td>
+              <td class="mono">{{ getSignalForDate(d.date)?.rsi | number:'1.1-1' }}</td>
+              <td class="mono">{{ getSignalForDate(d.date)?.sma_short | number:'1.2-2' }}</td>
+              <td class="mono">{{ getSignalForDate(d.date)?.sma_long | number:'1.2-2' }}</td>
+              <td>{{ getUnexecutedReason(d) }}</td>
+              <td><button type="button" class="ghost-btn small" (click)="openExplanation(d.date)">Explain</button></td>
+            </tr>
+            }
+          </tbody>
+        </table>
       </div>
+    </app-collapsible>
+  </div>
+
+  @if (simulationId) {
+  <h2>Ask the agent</h2>
+  <app-simulation-chat [simulationId]="simulationId" />
+  }
+  }
+
+  <nav class="back-links">
+    <a routerLink="/history">Back to history</a>
+    <a routerLink="/dashboard">Back to dashboard</a>
+  </nav>
 
       @if (explanationOpen) {
       <div class="modal-overlay" (click)="closeExplanation()">
-        <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-card" role="dialog" aria-modal="true" [attr.aria-label]="'Why this decision, ' + explanationDate" (click)="$event.stopPropagation()">
           <div class="modal-header">
             <h3>Why this decision — {{ explanationDate }}</h3>
-            <button class="modal-close" (click)="closeExplanation()">✕</button>
+            <button type="button" class="modal-close" aria-label="Close" (click)="closeExplanation()">✕</button>
           </div>
 
           @if (explanationLoading) {
           <div class="modal-body">
-            <p class="loading-text">Analyzing the decision with the AI agent…</p>
+            <p class="muted">Analyzing the decision with the AI agent…</p>
           </div>
           } @else if (explanationError) {
           <div class="modal-body">
             <p class="error-text">{{ explanationError }}</p>
-            <button class="explain-btn" (click)="openExplanation(explanationDate!)">Retry</button>
+            <button type="button" class="ghost-btn small" (click)="openExplanation(explanationDate!)">Retry</button>
           </div>
           } @else {
           <div class="modal-body">
@@ -289,16 +267,16 @@
           (click)="$event.stopPropagation()">
           <div class="modal-header">
             <h3>{{ h.title || h.label }}</h3>
-            <button class="modal-close" aria-label="Close" (click)="closeHighlight()">✕</button>
+            <button type="button" class="modal-close" aria-label="Close" (click)="closeHighlight()">✕</button>
           </div>
           <div class="modal-body">
             @if (h.explanation) {
             <p class="explanation-text">{{ h.explanation }}</p>
             } @else if (insights?.status === 'PENDING') {
-            <p class="loading-text">The agent is still writing this explanation…</p>
+            <p class="muted">The agent is still writing this explanation…</p>
             } @else {
             <p class="error-text">{{ insights?.error || 'The agent could not explain this highlight.' }}</p>
-            <button class="explain-btn" (click)="retryInsights()">Try again</button>
+            <button type="button" class="ghost-btn small" (click)="retryInsights()">Try again</button>
             }
             <p class="hl-facts-label">From the simulation data</p>
             <p class="hl-facts">{{ h.facts }}</p>
