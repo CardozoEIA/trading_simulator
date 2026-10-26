@@ -2,6 +2,7 @@
 
 Keeping them in code (instead of trusting the model's memory) grounds the answers.
 """
+import re
 
 GLOSSARY: dict[str, str] = {
     "RSI": (
@@ -52,3 +53,16 @@ GLOSSARY: dict[str, str] = {
         "not guarantee future results."
     ),
 }
+
+# Ways students write each topic; a conceptual question must mention at least one of them.
+_TERMS = re.compile(
+    r"\b(rsi|relative strength|sma|moving averages?|bollinger|momentum|stop[\s-]?loss|"
+    r"position size|max(imum)? position|drawdown|sharpe|win rate|profit factor|"
+    r"buy (&|and) hold|buy-and-hold|backtest\w*|indicators?|overbought|oversold|volatility|"
+    r"strateg(y|ies)|risk limits?|benchmark)\b",
+    re.IGNORECASE,
+)
+
+
+def mentions_glossary_term(question: str) -> bool:
+    return bool(_TERMS.search(question or ""))

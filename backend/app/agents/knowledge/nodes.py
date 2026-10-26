@@ -16,6 +16,7 @@ import re
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
+from app.agents.common.scope import looks_like_injection
 from app.agents.knowledge.prompts import (
     ANSWER_REMINDER,
     ANSWER_SYSTEM_PROMPT,
@@ -47,12 +48,6 @@ MAX_QUESTION_CHARS = 500
 GRADER_PASSAGES = 3
 GRADER_CHARS_PER_PASSAGE = 600
 
-_INJECTION = re.compile(
-    r"ignore (all |any |the )?(previous|above|prior)|disregard .{0,30}instructions|"
-    r"system prompt|reveal your (prompt|instructions)|olvida (tus|las) instrucciones|"
-    r"ignora (tus|las) instrucciones",
-    re.IGNORECASE,
-)
 _GREETING = re.compile(
     r"^(hi|hello|hey|hola|buenas|buenos d[ií]as|good (morning|afternoon|evening))\b[\s!.,]*$",
     re.IGNORECASE,
@@ -122,7 +117,7 @@ def make_nodes(
         if (
             len(question) < 2
             or len(question) > MAX_QUESTION_CHARS
-            or _INJECTION.search(question)
+            or looks_like_injection(question)
         ):
             return {
                 "intent": "invalid",

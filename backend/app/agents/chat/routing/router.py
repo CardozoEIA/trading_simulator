@@ -12,6 +12,7 @@ VALID_ROUTES = {
     "conceptual",
     "propose_change",
     "compare",
+    "off_topic",
     "clarify",
 }
 
