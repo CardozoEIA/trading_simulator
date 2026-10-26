@@ -6,6 +6,7 @@ from fastapi import HTTPException
 
 from app.agents.compare.diff import configuration_diff, metrics_diff, winner
 from app.agents.compare.graph import build_compare_graph
+from app.agents.common.tracing import tracing_config
 from app.agents.compare.tools import describe, get_simulation_slice
 
 logger = logging.getLogger(__name__)
@@ -39,12 +40,17 @@ def _check_pair(simulation_a: str, simulation_b: str) -> None:
         raise HTTPException(status_code=400, detail="Choose two different simulations to compare")
 
 
-def compare_simulations(simulation_a: str, simulation_b: str, user_id: str, llm=None) -> dict:
+def compare_simulations(simulation_a: str, simulation_b: str, user_id: str, llm=None,
+                        config: dict | None = None) -> dict:
+    """`config` is given when the comparison runs inside another graph (what-if), so it is traced there."""
     _check_pair(simulation_a, simulation_b)
+    if config is None:
+        config = tracing_config("compare", user_id, simulation_a)
 
     try:
         result = build_compare_graph(llm=llm).invoke(
-            {"user_id": user_id, "simulation_a": simulation_a, "simulation_b": simulation_b}
+            {"user_id": user_id, "simulation_a": simulation_a, "simulation_b": simulation_b},
+            config=config,
         )
     except HTTPException:
         raise  # 404 not found / not owned, 409 still running, 503 database

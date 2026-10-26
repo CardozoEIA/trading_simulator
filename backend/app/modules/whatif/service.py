@@ -4,6 +4,7 @@ import logging
 
 from fastapi import HTTPException
 
+from app.agents.common.tracing import tracing_config
 from app.agents.whatif.graph import build_what_if_graph
 
 logger = logging.getLogger(__name__)
@@ -14,7 +15,8 @@ DATABASE_UNAVAILABLE = "Could not connect to the database, please try again"
 def run_what_if(simulation_id: str, user_id: str, parameter: str, value: float, **graph_options) -> dict:
     try:
         result = build_what_if_graph(**graph_options).invoke(
-            {"user_id": user_id, "simulation_id": simulation_id, "parameter": parameter, "value": value}
+            {"user_id": user_id, "simulation_id": simulation_id, "parameter": parameter, "value": value},
+            config=tracing_config("what-if", user_id, simulation_id),
         )
     except HTTPException:
         raise  # 400 invalid change, 404 not owned, 409 still running, 503 database

@@ -1,8 +1,10 @@
 import os
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.agents.common.tracing import flush_tracing
 from app.modules.users.routes import router as users_router
 from app.modules.auth.routes import router as auth_router
 from app.modules.backtest.routes import router as backtest_router
@@ -22,7 +24,14 @@ from app.modules.compare.routes import router as compare_router
 from app.modules.whatif.routes import router as whatif_router
 from app.modules.setup.routes import router as setup_router
 
-app = FastAPI(title="Market Navigator AI API")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    flush_tracing()  # optional Langfuse: send traces of background tasks (insights) before stopping
+
+
+app = FastAPI(title="Market Navigator AI API", lifespan=lifespan)
 
 # Comma-separated list of frontend URLs allowed to call the API (set CORS_ORIGINS in production).
 CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:4200").split(",") if o.strip()]

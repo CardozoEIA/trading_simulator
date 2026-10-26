@@ -15,9 +15,11 @@ from datetime import date
 from typing import TypedDict
 
 from fastapi import HTTPException
+from langchain_core.runnables import RunnableConfig
 from langgraph.graph import END, START, StateGraph
 
 from app.agents.chat.support.proposals import build_proposal
+from app.agents.common.tracing import child_config
 from app.agents.whatif.plan import expected_effect
 from app.modules.backtest.schema import BacktestConfiguration
 from app.modules.backtest.service import save_configuration, validate_configuration
@@ -98,10 +100,10 @@ def build_what_if_graph(llm=None, runner=None, timeout: float = WHAT_IF_TIMEOUT_
                 "The new simulation could not be run, so here is the expected effect instead."
             )}
 
-    def compare(state: WhatIfState) -> WhatIfState:
+    def compare(state: WhatIfState, config: RunnableConfig) -> WhatIfState:
         original_id, what_if_id, user_id = state["simulation_id"], state["what_if_id"], state["user_id"]
         try:
-            comparison = compare_simulations(original_id, what_if_id, user_id, llm=llm)
+            comparison = compare_simulations(original_id, what_if_id, user_id, llm=llm, config=child_config(config))
             message = "The what-if finished. Here is how it compares with the original run."
         except Exception:
             # the agent could not explain it (e.g. Ollama down): the computed comparison is still useful

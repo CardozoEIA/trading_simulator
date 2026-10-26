@@ -84,11 +84,12 @@ def current_risk_values(simulation_id: str) -> dict | None:
 COMPARE_LINES = ("total_return_pct", "sharpe_ratio", "max_drawdown_pct", "excess_return_pct")
 
 
-def compare_simulations_text(simulation_id: str, other_id: str, user_id: str) -> str:
+def compare_simulations_text(simulation_id: str, other_id: str, user_id: str, config: dict | None = None) -> str:
     """Chat reply for "compare this run with ...": key metrics side by side plus the verified explanation."""
 
     result = build_compare_graph().invoke(
-        {"user_id": user_id, "simulation_a": simulation_id, "simulation_b": other_id}
+        {"user_id": user_id, "simulation_a": simulation_id, "simulation_b": other_id},
+        config=config,
     )
 
     metrics = {m["metric"]: m for m in result["metrics_diff"]}

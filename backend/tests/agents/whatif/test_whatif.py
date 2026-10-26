@@ -55,7 +55,7 @@ class FakeBackend:
         monkeypatch.setattr(whatif_graph, "save_risk_configuration", save_risk)
         monkeypatch.setattr(
             whatif_graph, "compare_simulations",
-            lambda a, b, user_id, llm=None: self.compares.append((a, b, user_id)) or COMPARISON,
+            lambda a, b, user_id, llm=None, config=None: self.compares.append((a, b, user_id)) or COMPARISON,
         )
         monkeypatch.setattr(
             whatif_graph, "compare_without_explanation",

@@ -10,4 +10,4 @@ router = APIRouter(prefix="/simulations", tags=["Setup"])
 
 @router.post("/setup/parse", response_model=SetupParseResponse)
 def parse(request: SetupParseRequest, current_user=Depends(get_current_user)):
-    return parse_setup(request.description)
+    return parse_setup(request.description, user_id=current_user.id)

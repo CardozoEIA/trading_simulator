@@ -26,7 +26,8 @@ def test_body_is_validated(client):
 def test_endpoint_returns_the_proposal(client, database, monkeypatch):
     monkeypatch.setattr(
         routes, "parse_setup",
-        lambda description: service.parse_setup(description, llm=ScriptedLLM(COMPLETE_EXTRACTION), today=TODAY),
+        lambda description, user_id=None: service.parse_setup(
+            description, user_id=user_id, llm=ScriptedLLM(COMPLETE_EXTRACTION), today=TODAY),
     )
     response = client.post("/simulations/setup/parse", json={"description": COMPLETE})
     assert response.status_code == 200

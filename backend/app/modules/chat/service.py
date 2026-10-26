@@ -4,6 +4,7 @@ import logging
 from fastapi import HTTPException
 from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage
 
+from app.agents.common.tracing import tracing_config
 from app.modules.chat import history, memory
 from app.modules.chat.checkpointer import get_checkpointer
 from app.modules.insights.service import _ensure_owner
@@ -28,6 +29,10 @@ def _thread_id(simulation_id: str, user_id: str) -> str:
 
 def _config(simulation_id: str, user_id: str) -> dict:
     return {"configurable": {"thread_id": _thread_id(simulation_id, user_id)}}
+
+
+def _traced(config: dict, simulation_id: str, user_id: str) -> dict:
+    return tracing_config("chat", user_id, _thread_id(simulation_id, user_id), base=config)
 
 
 def _memory_lookup(user_id: str, simulation_id: str):
@@ -103,7 +108,7 @@ def chat(
 
         result = graph.invoke(
             _build_input(graph, config, simulation_id, user_id, message),
-            config=config,
+            config=_traced(config, simulation_id, user_id),
         )
 
         payload = _reply_payload(result)
@@ -162,7 +167,7 @@ def chat_stream(
 
             for mode, data in graph.stream(
                 graph_input,
-                config=config,
+                config=_traced(config, simulation_id, user_id),
                 stream_mode=["messages", "values"],
             ):
                 if mode == "messages":
