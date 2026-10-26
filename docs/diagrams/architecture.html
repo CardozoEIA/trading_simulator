@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Market Navigator AI — Architecture</title>
+<!--
+  How to add the technology logos:
+  put the official logo files in ./logos/ with the names listed in README.md
+  (for example logos/angular.svg). Reload the page: every slot that finds its
+  file shows the logo; slots without a file keep the generic icon.
+-->
+<style>
+  :root {
+    --frame: #2f63ad;
+    --frame-soft: #eef3fb;
+    --ink: #13233a;
+    --muted: #5a6b82;
+    --card: #ffffff;
+    --line: #d5dde9;
+    --arrow: #3b4a5e;
+    --accent: #c9a15c;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f4f6fa; font-family: "Inter", "Segoe UI", Helvetica, Arial, sans-serif; color: var(--ink); }
+  #canvas { position: relative; width: 1600px; height: 960px; margin: 0 auto; background: #fff; }
+
+  .title { position: absolute; left: 30px; top: 18px; font-size: 22px; font-weight: 700; }
+  .title span { font-weight: 400; color: var(--muted); font-size: 15px; margin-left: 10px; }
+
+  .frame { position: absolute; border: 2px dashed var(--frame); border-radius: 10px; }
+  .frame.solid { border-style: solid; background: #fbfcfe; }
+  .frame > .label { position: absolute; top: 20px; left: 0; right: 0; text-align: center; font-size: 13px; font-weight: 700; color: var(--frame); letter-spacing: .02em; }
+  .frame > .label small { display: block; font-weight: 500; color: var(--muted); font-size: 11.5px; letter-spacing: 0; margin-top: 1px; }
+
+  .card { position: absolute; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; box-shadow: 0 1px 2px rgba(19,35,58,.05); }
+  .card h4 { margin: 0; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+  .card p { margin: 4px 0 0; font-size: 11.5px; color: var(--muted); line-height: 1.35; }
+  .card ul { margin: 6px 0 0; padding-left: 16px; font-size: 11.5px; line-height: 1.5; color: var(--ink); }
+  .card ul li::marker { color: var(--frame); }
+
+  .row { display: flex; align-items: center; gap: 10px; }
+  .logos { display: flex; gap: 6px; align-items: center; }
+
+  /* Logo slot: shows ./logos/<name>.svg|png when present, otherwise the generic icon */
+  .ico { width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .ico img { max-width: 30px; max-height: 30px; }
+  .ico svg { width: 26px; height: 26px; }
+  .ico:has(img) svg { display: none; }
+  .ico.lg { width: 44px; height: 44px; }
+  .ico.lg img { max-width: 44px; max-height: 44px; }
+  .ico.lg svg { width: 38px; height: 38px; }
+
+  .chips { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+  .chip { border: 1px solid var(--line); background: var(--frame-soft); border-radius: 6px; padding: 5px 7px; font-size: 11px; line-height: 1.25; }
+  .chip b { display: block; font-size: 11.5px; color: var(--ink); }
+  .chip span { color: var(--muted); }
+  .chip.wide { grid-column: span 2; }
+  .note { margin-top: 8px; font-size: 10.5px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 6px; line-height: 1.4; }
+
+  .tag { position: absolute; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: 11px; color: var(--ink); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .tag .ico { width: 20px; height: 20px; } .tag .ico img { max-width: 20px; max-height: 20px; } .tag .ico svg { width: 18px; height: 18px; }
+
+  .elabel { position: absolute; font-size: 10.5px; color: var(--arrow); background: #fff; padding: 0 3px; line-height: 1.25; text-align: center; }
+
+  svg#arrows { position: absolute; inset: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="canvas">
+
+  <div class="title">Market Navigator AI <span>System architecture</span></div>
+
+  <!-- Generic fallback icons (used until the real logos are added) -->
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="#2f63ad" stroke-width="1.8"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6" fill="none" stroke="#2f63ad" stroke-width="1.8"/></symbol>
+      <symbol id="i-browser" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="16" rx="2" fill="none" stroke="#2f63ad" stroke-width="1.8"/><path d="M2.5 8.5h19" stroke="#2f63ad" stroke-width="1.8"/><circle cx="5.5" cy="6.3" r=".9" fill="#2f63ad"/><circle cx="8" cy="6.3" r=".9" fill="#2f63ad"/></symbol>
+      <symbol id="i-web" viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16" fill="none" stroke="#2f63ad" stroke-width="1.8" stroke-linecap="round"/></symbol>
+      <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 0 0 .5-8A6 6 0 0 0 6 9.5 4.3 4.3 0 0 0 7 18z" fill="none" stroke="#2f63ad" stroke-width="1.8"/></symbol>
+      <symbol id="i-api" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="1.5" fill="none" stroke="#2f63ad" stroke-width="1.8"/><rect x="3" y="14" width="18" height="6" rx="1.5" fill="none" stroke="#2f63ad" stroke-width="1.8"/><circle cx="7" cy="7" r="1" fill="#2f63ad"/><circle cx="7" cy="17" r="1" fill="#2f63ad"/></symbol>
+      <symbol id="i-box" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z M4 7.5l8 4.5 8-4.5 M12 12v9" fill="none" stroke="#2f63ad" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+      <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="#2f63ad" stroke-width="1.8"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="#2f63ad" stroke-width="1.8" stroke-linecap="round"/></symbol>
+      <symbol id="i-graph" viewBox="0 0 24 24"><circle cx="5" cy="6" r="2.3" fill="none" stroke="#2f63ad" stroke-width="1.6"/><circle cx="19" cy="6" r="2.3" fill="none" stroke="#2f63ad" stroke-width="1.6"/><circle cx="12" cy="18" r="2.3" fill="none" stroke="#2f63ad" stroke-width="1.6"/><path d="M7 7.3l3.8 8.6M17 7.3l-3.8 8.6M7.3 6h9.4" stroke="#2f63ad" stroke-width="1.6"/></symbol>
+      <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" fill="none" stroke="#2f63ad" stroke-width="1.8" stroke-linecap="round"/></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z" fill="none" stroke="#2f63ad" stroke-width="1.8"/><path d="M9 12l2 2 4-4" fill="none" stroke="#2f63ad" stroke-width="1.8" stroke-linecap="round"/></symbol>
+      <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8" fill="none" stroke="#2f63ad" stroke-width="1.8"/><path d="M4.5 5.5v13c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-13M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8" fill="none" stroke="#2f63ad" stroke-width="1.8"/></symbol>
+      <symbol id="i-vector" viewBox="0 0 24 24"><path d="M4 20V4M4 20h16" stroke="#2f63ad" stroke-width="1.8" stroke-linecap="round"/><circle cx="9" cy="14" r="1.5" fill="#2f63ad"/><circle cx="13" cy="9" r="1.5" fill="#2f63ad"/><circle cx="17" cy="12" r="1.5" fill="#2f63ad"/><circle cx="15" cy="6" r="1.5" fill="#c9a15c"/></symbol>
+      <symbol id="i-chip" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="none" stroke="#2f63ad" stroke-width="1.8"/><path d="M9 3v3M12 3v3M15 3v3M9 18v3M12 18v3M15 18v3M3 9h3M3 12h3M3 15h3M18 9h3M18 12h3M18 15h3" stroke="#2f63ad" stroke-width="1.6"/><path d="M10 14l2-4 2 4" fill="none" stroke="#c9a15c" stroke-width="1.6"/></symbol>
+      <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 20h18" stroke="#2f63ad" stroke-width="1.8"/><path d="M5 16l4-5 3 3 6-7" fill="none" stroke="#2f63ad" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-code" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.2" fill="none" stroke="#2f63ad" stroke-width="1.6"/><circle cx="6" cy="18" r="2.2" fill="none" stroke="#2f63ad" stroke-width="1.6"/><circle cx="18" cy="9" r="2.2" fill="none" stroke="#2f63ad" stroke-width="1.6"/><path d="M6 8.2v7.6M18 11.2c0 3-6 2-10.5 5" fill="none" stroke="#2f63ad" stroke-width="1.6"/></symbol>
+      <symbol id="i-test" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3" fill="none" stroke="#2f63ad" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#3b4a5e"/></marker>
+    </defs>
+  </svg>
+
+  <!-- ============ CLIENT ============ -->
+  <div class="card" style="left:30px; top:320px; width:150px; height:140px; text-align:center; padding-top:16px">
+    <div class="row" style="justify-content:center"><span class="ico lg"><svg><use href="#i-user"/></svg></span></div>
+    <h4 style="justify-content:center; margin-top:8px">Student</h4>
+    <div class="row" style="justify-content:center; margin-top:6px"><span class="ico"><svg><use href="#i-browser"/></svg></span><p style="margin:0">Web browser<br>desktop or mobile</p></div>
+  </div>
+
+  <!-- ============ CLOUD ============ -->
+  <div class="frame" style="left:215px; top:62px; width:1365px; height:590px;">
+    <div class="label" style="text-align:left; left:14px">Cloud</div>
+  </div>
+
+  <!-- Frontend / Vercel -->
+  <div class="frame solid" style="left:240px; top:100px; width:270px; height:530px;">
+    <div class="label">Frontend</div>
+  </div>
+  <div class="tag" style="left:360px; top:100px; transform:translate(-50%,-50%)"><span class="ico"><img src="logos/vercel.svg" onerror="this.remove()"><img src="logos/vercel.png" onerror="this.remove()"><svg><use href="#i-cloud"/></svg></span>Vercel</div>
+
+  <div class="card" style="left:260px; top:150px; width:230px; height:66px;">
+    <div class="row">
+      <span class="ico lg"><img src="logos/angular.svg" onerror="this.remove()"><img src="logos/angular.png" onerror="this.remove()"><svg><use href="#i-web"/></svg></span>
+      <div><h4>Angular 20</h4><p>SPA · TypeScript · standalone components</p></div>
+    </div>
+  </div>
+  <div class="card" style="left:260px; top:232px; width:230px; height:378px;">
+    <h4><span class="ico"><svg><use href="#i-browser"/></svg></span>Screens</h4>
+    <ul>
+      <li>Register / login</li>
+      <li>Simulation setup<br><span style="color:var(--muted)">form or plain-language description</span></li>
+      <li>Risk limits &amp; confirmation</li>
+      <li>Status &amp; results<br><span style="color:var(--muted)">equity chart (lightweight-charts), metrics, buy &amp; hold, highlights</span></li>
+      <li>History &amp; compare</li>
+      <li>Agent chat (streaming)</li>
+      <li>Simulation report</li>
+      <li>Knowledge base &amp; documents</li>
+    </ul>
+  </div>
+
+  <!-- Backend / Render -->
+  <div class="frame solid" style="left:545px; top:100px; width:600px; height:530px;">
+    <div class="label">Backend</div>
+  </div>
+  <div class="tag" style="left:845px; top:100px; transform:translate(-50%,-50%)">
+    <span class="ico"><img src="logos/render.svg" onerror="this.remove()"><img src="logos/render.png" onerror="this.remove()"><svg><use href="#i-cloud"/></svg></span>Render
+    <span class="ico"><img src="logos/docker.svg" onerror="this.remove()"><img src="logos/docker.png" onerror="this.remove()"><svg><use href="#i-box"/></svg></span>Docker
+  </div>
+
+  <div class="card" style="left:565px; top:150px; width:560px; height:66px;">
+    <div class="row">
+      <span class="ico lg"><img src="logos/fastapi.svg" onerror="this.remove()"><img src="logos/fastapi.png" onerror="this.remove()"><svg><use href="#i-api"/></svg></span>
+      <span class="ico lg"><img src="logos/python.svg" onerror="this.remove()"><img src="logos/python.png" onerror="this.remove()"><svg><use href="#i-code"/></svg></span>
+      <div><h4>FastAPI · Python</h4><p>REST API · JWT on every protected route · Server-Sent Events for the chat · Pydantic validation</p></div>
+    </div>
+  </div>
+
+  <div class="card" style="left:565px; top:232px; width:160px; height:378px;">
+    <h4><span class="ico"><svg><use href="#i-api"/></svg></span>API modules</h4>
+    <ul>
+      <li>auth · users</li>
+      <li>backtest · risk</li>
+      <li>simulations · history</li>
+      <li>delete · bulk delete</li>
+      <li>decisions · signals</li>
+      <li>results · metrics</li>
+      <li>insights</li>
+      <li>chat</li>
+      <li>compare · what-if</li>
+      <li>setup · report</li>
+      <li>documents</li>
+      <li>knowledge</li>
+    </ul>
+    <div class="note">routes → service → engine / agents. Ownership checked on every request.</div>
+  </div>
+
+  <div class="card" style="left:737px; top:232px; width:178px; height:378px;">
+    <h4><span class="ico"><img src="logos/pandas.svg" onerror="this.remove()"><img src="logos/pandas.png" onerror="this.remove()"><svg><use href="#i-gear"/></svg></span>Simulation engine</h4>
+    <ul>
+      <li>Historical data<br><span style="color:var(--muted)">S&amp;P 500 OHLCV</span></li>
+      <li>Indicators<br><span style="color:var(--muted)">SMA · RSI · Bollinger · Momentum</span></li>
+      <li>Strategies + threshold engine</li>
+      <li>Risk manager<br><span style="color:var(--muted)">stop-loss · position size · max drawdown</span></li>
+      <li>Virtual portfolio &amp; equity curve</li>
+      <li>Buy &amp; hold benchmark</li>
+    </ul>
+    <div class="note">pandas · NumPy. Deterministic and reproducible; never trades real money.</div>
+  </div>
+
+  <div class="card" style="left:927px; top:232px; width:198px; height:378px;">
+    <h4>
+      <span class="ico"><img src="logos/langgraph.svg" onerror="this.remove()"><img src="logos/langgraph.png" onerror="this.remove()"><svg><use href="#i-graph"/></svg></span>
+      <span class="ico"><img src="logos/langchain.svg" onerror="this.remove()"><img src="logos/langchain.png" onerror="this.remove()"><svg><use href="#i-link"/></svg></span>
+      AI agents
+    </h4>
+    <p>LangGraph + LangChain · 8 graphs</p>
+    <div class="chips">
+      <div class="chip"><b>explain</b><span>ReAct + tools</span></div>
+      <div class="chip"><b>chat</b><span>supervisor router</span></div>
+      <div class="chip"><b>insights</b><span>event-triggered</span></div>
+      <div class="chip"><b>compare</b><span>two runs</span></div>
+      <div class="chip"><b>what-if</b><span>plan + confirm</span></div>
+      <div class="chip"><b>setup</b><span>structured output</span></div>
+      <div class="chip"><b>report</b><span>write + verify</span></div>
+      <div class="chip"><b>knowledge</b><span>RAG</span></div>
+    </div>
+    <div class="note">verify node · Postgres memory · human-in-the-loop · code computes, model writes</div>
+  </div>
+
+  <!-- Data / Supabase -->
+  <div class="frame solid" style="left:1185px; top:100px; width:375px; height:530px;">
+    <div class="label">Data</div>
+  </div>
+  <div class="tag" style="left:1372px; top:100px; transform:translate(-50%,-50%)"><span class="ico"><img src="logos/supabase.svg" onerror="this.remove()"><img src="logos/supabase.png" onerror="this.remove()"><svg><use href="#i-db"/></svg></span>Supabase</div>
+
+  <div class="card" style="left:1205px; top:150px; width:335px; height:66px;">
+    <div class="row">
+      <span class="ico lg"><svg><use href="#i-shield"/></svg></span>
+      <div><h4>Supabase Auth</h4><p>Accounts, sign-in, JWT validation</p></div>
+    </div>
+  </div>
+  <div class="card" style="left:1205px; top:232px; width:335px; height:240px;">
+    <div class="row">
+      <span class="ico lg"><img src="logos/postgresql.svg" onerror="this.remove()"><img src="logos/postgresql.png" onerror="this.remove()"><svg><use href="#i-db"/></svg></span>
+      <div><h4>PostgreSQL</h4><p>Row-level security on user data</p></div>
+    </div>
+    <div class="chips">
+      <div class="chip"><b>Market data</b><span>historical_data</span></div>
+      <div class="chip"><b>Configuration</b><span>backtest · risk</span></div>
+      <div class="chip"><b>Simulation runs</b><span>simulations · decisions</span></div>
+      <div class="chip"><b>Results</b><span>trades · signals · equity curve</span></div>
+      <div class="chip"><b>Agent output</b><span>insights</span></div>
+      <div class="chip"><b>Agent memory</b><span>chat messages · LangGraph checkpoints</span></div>
+    </div>
+  </div>
+  <div class="card" style="left:1205px; top:488px; width:335px; height:122px;">
+    <div class="row">
+      <span class="ico lg"><svg><use href="#i-vector"/></svg></span>
+      <div><h4>pgvector</h4><p>Vector search for the knowledge agent (RAG)</p></div>
+    </div>
+    <div class="chips">
+      <div class="chip"><b>documents</b><span>uploaded files</span></div>
+      <div class="chip"><b>document_chunks</b><span>768-d embeddings</span></div>
+    </div>
+  </div>
+
+  <!-- ============ OUTSIDE THE CLOUD ============ -->
+  <div class="frame" style="left:545px; top:712px; width:600px; height:218px;">
+    <div class="label">Local AI model <small>team machine · no paid API</small></div>
+  </div>
+  <div class="card" style="left:565px; top:772px; width:560px; height:140px;">
+    <div class="row">
+      <span class="ico lg"><img src="logos/ollama.svg" onerror="this.remove()"><img src="logos/ollama.png" onerror="this.remove()"><svg><use href="#i-chip"/></svg></span>
+      <div><h4>Ollama</h4><p>Serves the models to the agents over HTTP</p></div>
+    </div>
+    <div class="chips">
+      <div class="chip"><b>qwen2.5:7b</b><span>reasoning · tool calling · JSON routing · writing explanations</span></div>
+      <div class="chip"><b>nomic-embed-text</b><span>embeddings for document search and chat memory</span></div>
+    </div>
+  </div>
+
+  <div class="frame" style="left:1185px; top:712px; width:375px; height:152px;">
+    <div class="label">Market data source</div>
+  </div>
+  <div class="card" style="left:1205px; top:752px; width:335px; height:90px;">
+    <div class="row">
+      <span class="ico lg"><svg><use href="#i-chart"/></svg></span>
+      <div><h4>Yahoo Finance · yfinance</h4><p>One-time ingestion script loads S&amp;P 500 history into <b>historical_data</b>. Simulations never call it at run time.</p></div>
+    </div>
+  </div>
+
+  <div class="frame" style="left:1185px; top:876px; width:375px; height:58px;">
+  </div>
+  <div class="row" style="position:absolute; left:1200px; top:885px; width:350px;">
+    <span class="ico"><img src="logos/langfuse.svg" onerror="this.remove()"><img src="logos/langfuse.png" onerror="this.remove()"><svg><use href="#i-chart"/></svg></span>
+    <div style="font-size:12px; line-height:1.3"><b>Langfuse · optional tracing</b><br><span style="color:var(--muted)">self-hosted; traces of every agent run</span></div>
+  </div>
+  <div class="frame" style="left:30px; top:712px; width:480px; height:218px;">
+    <div class="label">Development &amp; delivery</div>
+  </div>
+  <div class="card" style="left:50px; top:752px; width:140px; height:158px; text-align:center">
+    <span class="ico lg"><img src="logos/github.svg" onerror="this.remove()"><img src="logos/github.png" onerror="this.remove()"><svg><use href="#i-code"/></svg></span>
+    <h4 style="justify-content:center">GitHub</h4><p>Repository, pull requests, Projects backlog, wiki</p>
+  </div>
+  <div class="card" style="left:200px; top:752px; width:140px; height:158px; text-align:center">
+    <span class="ico lg"><img src="logos/docker.svg" onerror="this.remove()"><img src="logos/docker.png" onerror="this.remove()"><svg><use href="#i-box"/></svg></span>
+    <h4 style="justify-content:center">Docker Compose</h4><p>Whole stack locally; nginx serves the built frontend</p>
+  </div>
+  <div class="card" style="left:350px; top:752px; width:140px; height:158px; text-align:center">
+    <span class="ico lg"><img src="logos/pytest.svg" onerror="this.remove()"><img src="logos/pytest.png" onerror="this.remove()"><svg><use href="#i-test"/></svg></span>
+    <h4 style="justify-content:center">pytest</h4><p>Engine, API and agent tests with a fake model</p>
+  </div>
+
+  <!-- ============ ARROWS ============ -->
+  <svg id="arrows" viewBox="0 0 1600 960">
+    <g fill="none" stroke="#3b4a5e" stroke-width="1.6" marker-end="url(#arrow)">
+      <path d="M180 390 H222 V183 H258"/>                 <!-- student -> angular -->
+      <path d="M490 183 H563"/>                           <!-- angular -> fastapi -->
+      <path d="M1125 183 H1203"/>                         <!-- fastapi -> auth -->
+      <path d="M1125 352 H1203"/>                         <!-- backend -> postgres -->
+      <path d="M1125 549 H1203"/>                         <!-- agents -> pgvector -->
+      <path d="M1026 610 V770"/>                          <!-- agents -> ollama -->
+      <path d="M1505 750 V632"/>                          <!-- yfinance -> supabase -->
+    </g>
+  </svg>
+
+  <div class="elabel" style="left:186px; top:398px">HTTPS</div>
+  <div class="elabel" style="left:497px; top:154px">REST + JWT<br>SSE</div>
+  <div class="elabel" style="left:1133px; top:154px">verify<br>JWT</div>
+  <div class="elabel" style="left:1135px; top:324px">SQL<br>RPC</div>
+  <div class="elabel" style="left:1131px; top:520px">vector<br>search</div>
+  <div class="elabel" style="left:1440px; top:672px">loads<br>historical_data</div>
+
+  <div class="tag" style="left:1026px; top:680px; transform:translate(-50%,-50%)">
+    <span class="ico"><img src="logos/cloudflare.svg" onerror="this.remove()"><img src="logos/cloudflare.png" onerror="this.remove()"><svg><use href="#i-link"/></svg></span>
+    Cloudflare Tunnel · HTTPS
+  </div>
+
+</div>
+</body>
+</html>

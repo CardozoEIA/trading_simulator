@@ -2,14 +2,19 @@
 
 ## 1. System overview
 
+![System architecture](diagrams/architecture.png)
+
+Editable source: [`diagrams/architecture.html`](diagrams/architecture.html) (open it in a browser; add the official logos to `diagrams/logos/` as described in its README).
+
 ```mermaid
 flowchart LR
     U[Student / browser] -->|HTTPS| FE[Angular 20 SPA<br/>Vercel]
-    FE -->|REST + JWT| API[FastAPI backend<br/>Render]
-    API -->|Auth: validate JWT| SA[(Supabase Auth)]
-    API -->|SQL / RPC| DB[(Supabase Postgres<br/>+ pgvector)]
-    API -->|LangGraph checkpoints| DB
-    API -->|chat + embeddings| OL[Ollama<br/>qwen2.5:7b, nomic-embed-text]
+    FE -->|REST + JWT · SSE| API[FastAPI backend + LangGraph agents<br/>Render · Docker]
+    API -->|validate JWT| SA[(Supabase Auth)]
+    API -->|SQL / RPC · LangGraph checkpoints| DB[(Supabase Postgres<br/>+ pgvector)]
+    API -->|chat + embeddings<br/>Cloudflare Tunnel| OL[Ollama on a team machine<br/>qwen2.5:7b · nomic-embed-text]
+    YF[Yahoo Finance · yfinance<br/>one-time ingestion] -->|historical_data| DB
+    API -.->|optional traces| LF[Langfuse<br/>self-hosted]
 ```
 
 ## 2. Backend layers
@@ -68,3 +73,5 @@ flowchart TD
 ## 5. Simulation agents
 
 The 8 LangGraph graphs (explain, chat, insights, compare, report, setup, what-if and knowledge), with one diagram per agent showing its nodes, edges and the tools each node uses, are described in **[agents.md](agents.md)**.
+
+![How the agents work](agents/diagrams/overview.png)

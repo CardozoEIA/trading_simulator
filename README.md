@@ -39,6 +39,8 @@ Plataforma educativa de apoyo a la decisión en trading. Los estudiantes simulan
 
 ## Arquitectura
 
+![Arquitectura del sistema](docs/diagrams/architecture.png)
+
 ```mermaid
 flowchart LR
     U[Estudiante / navegador] -->|HTTPS| FE[Angular 20<br/>Vercel]
@@ -49,6 +51,8 @@ flowchart LR
 ```
 
 Cómo funcionan los 8 agentes (qué inicia cada uno, sus nodos y las herramientas que usa cada nodo): **[docs/agents.md](docs/agents.md)**.
+
+![Cómo funcionan los agentes](docs/agents/diagrams/overview.png)
 
 ### Grafo del agente de conocimiento (LangGraph)
 
