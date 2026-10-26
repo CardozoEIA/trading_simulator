@@ -1,6 +1,5 @@
 :host {
   display: block;
-  margin-bottom: 40px;
 
   --chat-surface: rgba(245, 243, 238, 0.06);
   --chat-border: rgba(245, 243, 238, 0.12);

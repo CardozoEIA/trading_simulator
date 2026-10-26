@@ -15,10 +15,11 @@ import { Highlight, HighlightKind, SimulationInsights } from '@models/agent/insi
 import { SimulationChat } from '../simulation-chat/simulation-chat';
 import { HelpHint } from '@shared/ui/help-hint/help-hint';
 import { SimulationReport } from '../simulation-report/simulation-report';
+import { Collapsible } from '@shared/ui/collapsible/collapsible';
 
 @Component({
   selector: 'app-simulation-decisions',
-  imports: [RouterLink, DecimalPipe, EquityChart, SimulationChat, HelpHint, SimulationReport],
+  imports: [RouterLink, DecimalPipe, EquityChart, SimulationChat, HelpHint, SimulationReport, Collapsible],
   templateUrl: './simulation-decisions.html',
   styleUrl: './simulation-decisions.css',
 })
@@ -114,12 +115,9 @@ export class SimulationDecisions implements OnInit, OnDestroy {
     return this.insights?.highlights.find(h => h.kind === kind);
   }
 
-  get headlineHighlights(): Highlight[] {
-    return (this.insights?.highlights ?? []).filter(h => h.kind === 'BUY_AND_HOLD' || h.kind === 'RISK_STOP');
-  }
-
-  get chartHighlights(): Highlight[] {
-    return (this.insights?.highlights ?? []).filter(h => h.kind !== 'BUY_AND_HOLD' && h.kind !== 'RISK_STOP');
+  /** Highlights shown as chips in the summary card (buy & hold has its own line with a Why? button). */
+  get highlightList(): Highlight[] {
+    return (this.insights?.highlights ?? []).filter(h => h.kind !== 'BUY_AND_HOLD');
   }
 
   get chartMarkers(): ChartHighlight[] {
@@ -185,6 +183,15 @@ export class SimulationDecisions implements OnInit, OnDestroy {
   get benchmarkDeltaPct(): number | null {
     if (!this.summary?.benchmark) return null;
     return this.totalReturnPct - this.summary.benchmark.total_return_pct;
+  }
+
+  /** Distance to buy & hold in percentage points, always positive (the sign is in beatBenchmark). */
+  get benchmarkGap(): number {
+    return Math.abs(this.benchmarkDeltaPct ?? 0);
+  }
+
+  get profitLoss(): number {
+    return this.finalValue - (this.summary?.initial_capital ?? 0);
   }
 
   get beatBenchmark(): boolean {
