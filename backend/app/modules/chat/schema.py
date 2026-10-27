@@ -16,12 +16,26 @@ class ProposedChange(BaseModel):
     plan: list[str] = Field(default_factory=list)  # ordered what-if steps, shown before confirmation
 
 
+class TraceEntry(BaseModel):
+    tool: str
+    arguments: dict = Field(default_factory=dict)
+    result: str | None = None
+
+
+class TraceVerification(BaseModel):
+    verified: bool
+    tools_called: int = 0
+    removed: list[dict] = Field(default_factory=list)
+
+
 class ChatResponse(BaseModel):
     reply: str
     route: str | None = None
     date: str | None = None
     suggestions: list[str] = Field(default_factory=list)
     proposed_change: ProposedChange | None = None
+    trace: list[TraceEntry] = Field(default_factory=list)   # US-31: tools the agent called for this answer
+    verification: TraceVerification | None = None
 
 
 class ChatHistoryMessage(BaseModel):

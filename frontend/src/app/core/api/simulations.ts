@@ -13,6 +13,7 @@ import { SimulationInsights } from '@models/agent/insights.model';
 import { SimulationReport } from '@models/agent/report.model';
 import { SimulationComparison } from '@models/agent/compare.model';
 import { RiskParameter, WhatIfResult } from '@models/agent/what-if.model';
+import { ExplainResponse, TraceRecord } from '@models/agent/trace.model';
 
 @Injectable({
   providedIn: 'root',
@@ -48,9 +49,16 @@ export class Simulations {
     return this.http.get<Signal[]>(`${this.baseUrl}/simulations/${simulationId}/signals`);
   }
   public explainDecision(simulationId: string, date: string) {
-    return this.http.post<{ explanation: string }>(
+    return this.http.post<ExplainResponse>(
       `${this.baseUrl}/simulations/${simulationId}/explain`,
       { date }
+    );
+  }
+  /** US-31: what the agent used for its explanations of this simulation, newest first. */
+  public getTraces(simulationId: string, date?: string) {
+    return this.http.get<TraceRecord[]>(
+      `${this.baseUrl}/simulations/${simulationId}/traces`,
+      { params: date ? { date } : {} }
     );
   }
   public getMetrics(simulationId: string) {

@@ -8,12 +8,20 @@ import { Simulations } from '@core/api/simulations';
 import { ChatStreamEvent, PENDING_RISK_CHANGE_KEY, ProposedChange } from '@models/agent/chat.model';
 import { RiskParameter, WhatIfResult as WhatIfResultData } from '@models/agent/what-if.model';
 import { WhatIfResult } from './what-if-result/what-if-result';
+import { TraceView } from '@shared/ui/trace-view/trace-view';
+import { ToolCallTrace, Verification } from '@models/agent/trace.model';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
   text: string;
   isError?: boolean;
   streaming?: boolean;
+  route?: string | null;
+  date?: string | null;
+  // US-31: the data behind an explanation. Live replies carry it; for older ones it is loaded on demand.
+  trace?: ToolCallTrace[];
+  verification?: Verification | null;
+  traceLoading?: boolean;
 }
 
 const DEFAULT_SUGGESTIONS = [
@@ -24,7 +32,7 @@ const DEFAULT_SUGGESTIONS = [
 
 @Component({
   selector: 'app-simulation-chat',
-  imports: [FormsModule, WhatIfResult],
+  imports: [FormsModule, WhatIfResult, TraceView],
   templateUrl: './simulation-chat.html',
   styleUrl: './simulation-chat.css',
 })
@@ -60,7 +68,7 @@ export class SimulationChat implements OnInit, OnDestroy {
         if (history.messages.length === 0) return;
 
         this.messages.set(
-          history.messages.map((m) => ({ role: m.role, text: m.content })),
+          history.messages.map((m) => ({ role: m.role, text: m.content, route: m.route, date: m.date })),
         );
         this.suggestions.set(history.suggestions);
         this.active.set(true);
@@ -166,13 +174,49 @@ export class SimulationChat implements OnInit, OnDestroy {
     });
   }
 
+  /** US-31: an explanation from an earlier visit has no trace in memory: fetch the stored one for its date. */
+  canShowTrace(message: ChatMessage): boolean {
+    return message.role === 'assistant' && message.route === 'explain_agent' && !!message.date
+      && message.trace === undefined && !message.isError;
+  }
+
+  loadTrace(index: number): void {
+    const message = this.messages()[index];
+    if (!message?.date || message.traceLoading) return;
+
+    this.patchMessage(index, { traceLoading: true });
+    this.simulations.getTraces(this.simulationId(), message.date).subscribe({
+      next: (records) => {
+        const latest = records.find((r) => r.answer === message.text) ?? records[0];
+        this.patchMessage(index, {
+          traceLoading: false,
+          trace: latest?.tool_calls ?? [],
+          verification: latest?.verification ?? null,
+        });
+      },
+      error: () => this.patchMessage(index, { traceLoading: false, trace: [], verification: null }),
+    });
+  }
+
+  private patchMessage(index: number, change: Partial<ChatMessage>): void {
+    this.messages.update((list) => list.map((m, i) => (i === index ? { ...m, ...change } : m)));
+  }
+
   private handleEvent(event: ChatStreamEvent): void {
     if (event.type === 'token') {
       this.updateLast((m) => ({ ...m, text: m.text + event.text }));
       this.scrollToBottom();
     } else if (event.type === 'done') {
       // The final reply replaces whatever was streamed, so the text is always the complete one.
-      this.updateLast((m) => ({ ...m, text: event.response.reply, streaming: false }));
+      this.updateLast((m) => ({
+        ...m,
+        text: event.response.reply,
+        streaming: false,
+        route: event.response.route,
+        date: event.response.date,
+        trace: event.response.trace ?? [],
+        verification: event.response.verification ?? null,
+      }));
       this.suggestions.set(event.response.suggestions);
       this.proposal.set(event.response.proposed_change);
       this.sending.set(false);

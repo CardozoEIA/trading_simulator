@@ -16,10 +16,12 @@ import { SimulationChat } from '../simulation-chat/simulation-chat';
 import { HelpHint } from '@shared/ui/help-hint/help-hint';
 import { SimulationReport } from '../simulation-report/simulation-report';
 import { Collapsible } from '@shared/ui/collapsible/collapsible';
+import { TraceView } from '@shared/ui/trace-view/trace-view';
+import { ToolCallTrace, Verification } from '@models/agent/trace.model';
 
 @Component({
   selector: 'app-simulation-decisions',
-  imports: [RouterLink, DecimalPipe, EquityChart, SimulationChat, HelpHint, SimulationReport, Collapsible],
+  imports: [RouterLink, DecimalPipe, EquityChart, SimulationChat, HelpHint, SimulationReport, Collapsible, TraceView],
   templateUrl: './simulation-decisions.html',
   styleUrl: './simulation-decisions.css',
 })
@@ -223,6 +225,8 @@ export class SimulationDecisions implements OnInit, OnDestroy {
   explanationOpen = false;
   explanationDate: string | null = null;
   explanationText = '';
+  explanationTrace: ToolCallTrace[] = [];          // US-31: tools the agent called and what they returned
+  explanationVerification: Verification | null = null;
   explanationLoading = false;
   explanationError = '';
 
@@ -231,12 +235,16 @@ export class SimulationDecisions implements OnInit, OnDestroy {
     this.explanationOpen = true;
     this.explanationDate = date;
     this.explanationText = '';
+    this.explanationTrace = [];
+    this.explanationVerification = null;
     this.explanationError = '';
     this.explanationLoading = true;
 
     this.simulations.explainDecision(this.simulationId, date).subscribe({
       next: (response) => {
         this.explanationText = response.explanation;
+        this.explanationTrace = response.trace ?? [];
+        this.explanationVerification = response.verification ?? null;
         this.explanationLoading = false;
       },
       error: (error) => {
@@ -252,6 +260,8 @@ export class SimulationDecisions implements OnInit, OnDestroy {
     this.explanationOpen = false;
     this.explanationDate = null;
     this.explanationText = '';
+    this.explanationTrace = [];
+    this.explanationVerification = null;
     this.explanationError = '';
     this.explanationLoading = false;
   }

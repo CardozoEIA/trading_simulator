@@ -23,6 +23,7 @@ from app.modules.report.routes import router as report_router
 from app.modules.compare.routes import router as compare_router
 from app.modules.whatif.routes import router as whatif_router
 from app.modules.setup.routes import router as setup_router
+from app.modules.custom_strategies.routes import router as custom_strategies_router
 
 
 @asynccontextmanager
@@ -68,3 +69,4 @@ app.include_router(report_router)
 app.include_router(compare_router)
 app.include_router(whatif_router)
 app.include_router(setup_router)
+app.include_router(custom_strategies_router)

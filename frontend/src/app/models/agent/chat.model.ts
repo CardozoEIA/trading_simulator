@@ -1,3 +1,5 @@
+import { ToolCallTrace, Verification } from './trace.model';
+
 export interface ProposedChange {
   parameter: string;
   label: string;
@@ -12,6 +14,9 @@ export interface ChatResponse {
   date: string | null;
   suggestions: string[];
   proposed_change: ProposedChange | null;
+  /** US-31: tools the agent called for this answer, and what its self-check found. */
+  trace?: ToolCallTrace[];
+  verification?: Verification | null;
 }
 
 export interface ChatHistoryMessage {

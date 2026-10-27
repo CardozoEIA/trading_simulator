@@ -9,6 +9,7 @@ from langgraph.graph import END, START, StateGraph
 from app.agents.common.scope import OFF_TOPIC_REPLY, looks_like_injection
 from app.agents.common.tracing import child_config
 from app.agents.explain.graph import build_agent_graph
+from app.agents.explain.run import run_explanation
 from app.agents.chat.support.dates import (
     load_decision_dates,
     resolve_date,
@@ -211,21 +212,12 @@ def build_conversation_graph(
         )
 
         try:
-            result = graph.invoke(
-                {
-                    "messages": [
-                        HumanMessage(
-                            content=f"Explain the trading decision made on {date}."
-                        )
-                    ]
-                },
-                config=explain_config,
-            )
+            result = run_explanation(graph, date, explain_config)
 
             return {
-                "messages": [
-                    AIMessage(content=result["messages"][-1].content)
-                ]
+                "messages": [AIMessage(content=result["text"])],
+                "trace": result["trace"],
+                "verification": result["verification"],
             }
 
         except Exception:

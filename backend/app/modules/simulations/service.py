@@ -4,10 +4,7 @@ from fastapi import HTTPException
 
 from app.services.historical_data.processor import process_historical_data
 from app.services.strategy.engine import run_strategy
-from app.services.strategy.strategies.sma import evaluate as sma_evaluate
-from app.services.strategy.strategies.rsi import evaluate as rsi_evaluate
-from app.services.strategy.strategies.bollinger import evaluate as bollinger_evaluate
-from app.services.strategy.strategies.momentum import evaluate as momentum_evaluate
+from app.services.strategy.factory import BUILT_IN as STRATEGY_FUNCTIONS, build_strategy
 from app.services.strategy.schema import DecisionAction
 from app.services.benchmark.calculator import calculate_buy_and_hold
 
@@ -18,6 +15,7 @@ from app.modules.decisions.service import save_decisions
 from app.modules.risk.manager import RiskManager
 from app.services.indicators.calculator import calculate_all
 from app.modules.signals.service import save_signals
+from app.modules.regime.service import regimes_for_candles
 
 
 def get_full_configuration(configuration_id: str, user_id: str) -> dict:
@@ -100,14 +98,6 @@ def build_configuration_summary(configuration_id: str, user_id: str) -> dict:
         "benchmark": benchmark.model_dump()
     }
 
-STRATEGY_FUNCTIONS = {
-    "SMA": sma_evaluate,
-    "RSI": rsi_evaluate,
-    "BOLLINGER": bollinger_evaluate,
-    "MOMENTUM": momentum_evaluate,
-}
-
-
 def start_simulation(configuration_id: str, user_id: str) -> dict:
     """Validates the full configuration exists and creates a new simulation run."""
     simulation_configuration = get_full_configuration(configuration_id, user_id)
@@ -117,11 +107,20 @@ def start_simulation(configuration_id: str, user_id: str) -> dict:
         end_date=date.fromisoformat(simulation_configuration["end_date"]),
     )
 
-    selected_functions = [
-        STRATEGY_FUNCTIONS[s] for s in simulation_configuration["strategies"]
-    ]
+    # US-23: the regime of each day is context only. Strategies never see it; only the ensemble uses it to pick weights.
+    regimes = regimes_for_candles(simulation_configuration["asset"], processed_data.candles)
+
+    # US-24: one strategy runs alone; two or more are blended by the ensemble. US-21: custom ones come from the saved snapshot.
+    selected_functions, ensemble_threshold, ensemble = build_strategy(
+        simulation_configuration["strategies"],
+        simulation_configuration.get("custom_strategies"),
+        regimes,
+        simulation_configuration.get("ensemble_threshold"),
+    )
     decisions = run_strategy(
-        candles=processed_data.candles, strategy_functions=selected_functions
+        candles=processed_data.candles,
+        strategy_functions=selected_functions,
+        threshold=ensemble_threshold,
     )
     signal_snapshots = calculate_all(processed_data.candles)
 
@@ -167,11 +166,12 @@ def start_simulation(configuration_id: str, user_id: str) -> dict:
     executed_dates = {t.date for t in trades}
 
     save_decisions(
-        simulation_id, decisions, executed_dates, prices_by_date, rejections, overrides
+        simulation_id, decisions, executed_dates, prices_by_date, rejections, overrides,
+        breakdowns=ensemble.breakdowns if ensemble else None,
     )
     save_trades(simulation_id, trades)
     save_equity_curve(simulation_id, equity_curve)
-    save_signals(simulation_id, signal_snapshots)
+    save_signals(simulation_id, signal_snapshots, regimes)
 
     try:
         updated = (

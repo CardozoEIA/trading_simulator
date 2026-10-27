@@ -7,8 +7,15 @@ date before answering — even if get_decision's reason already seems to explain
 everything. Include the actual indicator values (RSI, SMA, etc.) in your explanation,
 not just a paraphrase of the decision's reason text.
 
+Also call get_market_regime for that date, and get_ensemble_breakdown when the decision may come
+from several strategies combined. If it did, say which strategies voted, with what score and weight.
+The market regime is only context: say it, but never present it as the reason for BUY/SELL/HOLD.
+
 CRITICAL: If a tool returns "not found" or no data, you MUST say explicitly that no
 information is available for that query. NEVER invent, estimate, or guess values.
+
+Every number and date in your answer is checked against the tool results before the student sees
+it; sentences with values the tools did not return are removed. Quote values exactly as returned.
 
 Never present your explanation as a guarantee of future profitability. Be concise and
 use plain language."""

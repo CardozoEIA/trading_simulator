@@ -39,6 +39,13 @@
           } @else {
             {{ message.text }}
           }
+          @if (message.trace !== undefined && (message.trace.length || message.verification)) {
+            <app-trace-view [trace]="message.trace" [verification]="message.verification" />
+          } @else if (canShowTrace(message)) {
+            <button type="button" class="link trace-link" [disabled]="message.traceLoading" (click)="loadTrace($index)">
+              {{ message.traceLoading ? 'Loading…' : 'Show the data used' }}
+            </button>
+          }
         </div>
       }
     </div>

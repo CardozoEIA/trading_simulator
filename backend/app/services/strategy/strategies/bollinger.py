@@ -18,8 +18,18 @@ def _calculate_bands(candles: list, current_index: int, period: int, num_std: fl
     return mean, upper, lower
 
 
-def evaluate(candles: list, current_index: int) -> StrategySignal:
-    bands = _calculate_bands(candles=candles, current_index=current_index, period=PERIOD, num_std=NUM_STD)
+def build_evaluate(period: int = PERIOD, num_std: float = NUM_STD):
+    """Returns an evaluate(candles, index) function with the given period and band width (US-21).
+    With the default values it behaves exactly like the built-in Bollinger strategy."""
+
+    def evaluate(candles: list, current_index: int) -> StrategySignal:
+        return _evaluate(candles, current_index, period, num_std)
+
+    return evaluate
+
+
+def _evaluate(candles: list, current_index: int, period: int, num_std: float) -> StrategySignal:
+    bands = _calculate_bands(candles=candles, current_index=current_index, period=period, num_std=num_std)
 
     if bands is None:
         return StrategySignal(direction=DecisionAction.HOLD, score=0.0, reasoning="Not enough data yet")
@@ -43,3 +53,6 @@ def evaluate(candles: list, current_index: int) -> StrategySignal:
         return StrategySignal(direction=DecisionAction.SELL, score=score, reasoning=f"Price {price:.2f} above upper band {upper:.2f}")
 
     return StrategySignal(direction=DecisionAction.HOLD, score=score, reasoning=f"Price {price:.2f} within bands [{lower:.2f}, {upper:.2f}]")
+
+
+evaluate = build_evaluate()

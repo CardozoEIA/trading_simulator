@@ -251,6 +251,7 @@
           } @else {
           <div class="modal-body">
             <p class="explanation-text">{{ explanationText }}</p>
+            <app-trace-view [trace]="explanationTrace" [verification]="explanationVerification" />
             <p class="disclaimer">This explanation is based only on recorded simulation data and is not financial advice
               or a guarantee of future results.</p>
           </div>

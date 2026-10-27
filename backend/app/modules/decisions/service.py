@@ -1,10 +1,14 @@
 # app/modules/decisions/service.py
+from datetime import date
+
 from fastapi import HTTPException
 from app.core.supabase import supabase_admin as supabase
 from app.core.validation import is_valid_uuid
 from app.services.strategy.schema import Decision
 
-def save_decisions(simulation_id, decisions, executed_dates, prices_by_date, rejections: dict, overrides: dict) -> None:
+def save_decisions(simulation_id, decisions, executed_dates, prices_by_date, rejections: dict, overrides: dict,
+                   breakdowns: dict | None = None) -> None:
+    """`breakdowns` (US-24) maps a date to the ensemble breakdown of that day: regime, weights, component signals."""
     if not decisions:
         return
     rows = []
@@ -23,6 +27,11 @@ def save_decisions(simulation_id, decisions, executed_dates, prices_by_date, rej
                 "reason": d.reason, "executed": d.date in executed_dates,
                 "rejection_reason": rejections.get(d.date)
             })
+    if breakdowns:
+        for row in rows:
+            breakdown = breakdowns.get(date.fromisoformat(row["date"]))
+            if breakdown is not None:
+                row["breakdown"] = breakdown
     try:
         supabase.table("simulation_decisions").insert(rows).execute()
     except Exception:

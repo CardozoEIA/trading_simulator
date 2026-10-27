@@ -32,8 +32,18 @@ def _calculate_rsi(candles: list, current_index: int, period: int) -> float | No
     return 100 - (100 / (1 + rs))
 
 
-def evaluate(candles: list, current_index: int) -> StrategySignal:
-    rsi = _calculate_rsi(candles=candles, current_index=current_index, period=RSI_PERIOD)
+def build_evaluate(period: int = RSI_PERIOD, oversold: float = OVERSOLD, overbought: float = OVERBOUGHT):
+    """Returns an evaluate(candles, index) function with the given period and limits (US-21).
+    With the default values it behaves exactly like the built-in RSI strategy."""
+
+    def evaluate(candles: list, current_index: int) -> StrategySignal:
+        return _evaluate(candles, current_index, period, oversold, overbought)
+
+    return evaluate
+
+
+def _evaluate(candles: list, current_index: int, period: int, oversold: float, overbought: float) -> StrategySignal:
+    rsi = _calculate_rsi(candles=candles, current_index=current_index, period=period)
 
     if rsi is None:
         return StrategySignal(direction=DecisionAction.HOLD, score=0.0, reasoning="Not enough data yet")
@@ -42,10 +52,13 @@ def evaluate(candles: list, current_index: int) -> StrategySignal:
     # RSI near 0 (oversold) -> score near +1 (BUY). RSI near 100 (overbought) -> score near -1 (SELL).
     score = (50 - rsi) / 50
 
-    if rsi < OVERSOLD:
+    if rsi < oversold:
         return StrategySignal(direction=DecisionAction.BUY, score=score, reasoning=f"RSI={rsi:.2f} indicates oversold conditions")
 
-    if rsi > OVERBOUGHT:
+    if rsi > overbought:
         return StrategySignal(direction=DecisionAction.SELL, score=score, reasoning=f"RSI={rsi:.2f} indicates overbought conditions")
 
     return StrategySignal(direction=DecisionAction.HOLD, score=score, reasoning=f"RSI={rsi:.2f} is within normal range")
+
+
+evaluate = build_evaluate()
