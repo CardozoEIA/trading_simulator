@@ -6,7 +6,7 @@ The diagrams below are drawn by hand from the graphs exported from the code (`do
 
 | Agent | Story | Flow | Started by |
 |---|---|---|---|
-| [explain](#explain-us-20) | US-20 | `agent ⇄ tools` (ReAct) | Explain button, chat `explain_agent` |
+| [explain](#explain-us-20) | US-20, US-31 | `agent ⇄ tools → verify` (ReAct + self-check) | Explain button, chat `explain_agent` |
 | [chat](#chat-us-2225) | US-22/25 | `supervisor` → one route | Question in guided mode |
 | [insights](#insights-us-26) | US-26 | `gather_facts → explain → verify` | A simulation finishes |
 | [compare](#compare-us-27) | US-27 | `fetch_a ∥ fetch_b → diff → explain → verify` | Compare in History, chat, what-if |
@@ -47,21 +47,23 @@ flowchart LR
 
 Solid arrows are the graph edges; dashed lines connect a node to the tools and data it uses. Conditional edges carry their condition as the label.
 
-### explain (US-20)
+### explain (US-20, US-31)
 
-ReAct loop: the model decides which tools to call, LangGraph runs them and gives the results back, until the model answers without tool calls (`tools_condition`). Builder: `build_agent_graph(simulation_id, user_id)`; the tools are bound to that simulation.
+ReAct loop: the model decides which tools to call, LangGraph runs them and gives the results back, until the model answers without tool calls. That draft then goes through a **verify** node (US-31): every sentence is checked and the ones with a date or number that no tool returned (or that promise future results) are removed, with a note for the student. The check is code, not the model grading itself. Builder: `build_agent_graph(simulation_id, user_id)`; the tools are bound to that simulation.
+
+What the student can see (explanation modal and chat): the **trace** — every tool called, its arguments and the value it returned — and the **verification** result. Both are stored in `agent_traces` and readable at `GET /simulations/{id}/traces`.
 
 ```mermaid
 flowchart LR
     S([START]) --> A[agent<br/>qwen2.5:7b + tools]
     A -->|tool calls| T[tools]
     T --> A
-    A -->|no tool calls| E([END])
+    A -->|no tool calls| V[verify<br/>drop unbacked sentences]
+    V --> E([END])
 
-    T -.- t1[get_price] & t3[get_indicators] -.- d1[(simulation_signals)]
-    T -.- t2[get_decision] -.- d2[(simulation_decisions)]
+    T -.- t1[get_price] & t3[get_indicators] & t5[get_market_regime] -.- d1[(simulation_signals)]
+    T -.- t2[get_decision] & t6[get_ensemble_breakdown] -.- d2[(simulation_decisions)]
     T -.- t4[get_risk_config] -.- d3[(simulations +<br/>risk_configurations)]
-    T -.- t5[get_market_regime<br/>not available yet]
 ```
 
 ### chat (US-22/25)

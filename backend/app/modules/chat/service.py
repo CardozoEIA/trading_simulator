@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage
 
 from app.agents.common.tracing import tracing_config
+from app.modules.agent import traces
 from app.modules.chat import history, memory
 from app.modules.chat.checkpointer import get_checkpointer
 from app.modules.insights.service import _ensure_owner
@@ -52,6 +53,9 @@ def _build_input(graph, config: dict, simulation_id: str, user_id: str, message:
     payload = {
         "messages": [HumanMessage(content=message)],
         "simulation_id": simulation_id,
+        # The thread keeps state between turns: a trace belongs to the turn that produced it (US-31).
+        "trace": None,
+        "verification": None,
     }
 
     snapshot = graph.get_state(config)
@@ -84,7 +88,17 @@ def _reply_payload(result: dict) -> dict:
         "date": date,
         "suggestions": suggest_followups(route, date),
         "proposed_change": result.get("proposed_change"),
+        "trace": result.get("trace") or [],
+        "verification": result.get("verification"),
     }
+
+
+def _save_trace(user_id: str, simulation_id: str, payload: dict) -> None:
+    if payload.get("route") == "explain_agent" and payload.get("trace"):
+        traces.save_trace(
+            user_id, simulation_id, "chat", payload.get("date"), payload["reply"],
+            payload["trace"], payload.get("verification"),
+        )
 
 
 def chat(
@@ -117,6 +131,7 @@ def chat(
         raise HTTPException(status_code=503, detail=UNAVAILABLE)
 
     memory.remember_turn(user_id, simulation_id, message, payload)
+    _save_trace(user_id, simulation_id, payload)
 
     return payload
 
@@ -190,6 +205,7 @@ def chat_stream(
             return
 
         memory.remember_turn(user_id, simulation_id, message, payload)
+        _save_trace(user_id, simulation_id, payload)
 
         yield _sse("done", payload)
 

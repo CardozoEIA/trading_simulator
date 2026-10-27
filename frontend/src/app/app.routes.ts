@@ -12,6 +12,7 @@ import { SimulationDecisions } from './features/simulation/simulation-decisions/
 import { SimulationHistory } from './features/simulation/simulation-history/simulation-history';
 import { Knowledge } from './features/knowledge/knowledge';
 import { SimulationCompare } from './features/simulation/simulation-compare/simulation-compare';
+import { CustomStrategies } from './features/simulation/custom-strategies/custom-strategies';
 
 
 export const routes: Routes = [
@@ -25,5 +26,6 @@ export const routes: Routes = [
     { path: 'simulation-decisions/:simulationId', component: SimulationDecisions, canActivate: [authGuard] },
     { path: 'history', component: SimulationHistory, canActivate: [authGuard] },
     { path: 'compare', component: SimulationCompare, canActivate: [authGuard] },
+    { path: 'custom-strategies', component: CustomStrategies, canActivate: [authGuard] },
     { path: 'knowledge', component: Knowledge, canActivate: [authGuard] },
 ];

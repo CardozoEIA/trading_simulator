@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, ElementRef, OnInit, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
 import { DocumentsService } from '@core/api/documents.service';
 import { KnowledgeService } from '@core/api/knowledge.service';
@@ -27,7 +27,7 @@ const SUGGESTIONS = [
 
 @Component({
   selector: 'app-knowledge',
-  imports: [FormsModule, RouterLink, DatePipe],
+  imports: [FormsModule, DatePipe],
   templateUrl: './knowledge.html',
   styleUrl: './knowledge.css',
 })

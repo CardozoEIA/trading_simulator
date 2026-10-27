@@ -12,14 +12,24 @@ def _calculate_sma(candles: list, current_index: int, period: int) -> float | No
     return sum(close_values) / len(close_values)
 
 
-def evaluate(candles: list, current_index: int) -> StrategySignal:
+def build_evaluate(short_period: int = SHORT_PERIOD, long_period: int = LONG_PERIOD):
+    """Returns an evaluate(candles, index) function with the given periods (US-21 custom strategies).
+    With the default periods it behaves exactly like the built-in SMA strategy."""
+
+    def evaluate(candles: list, current_index: int) -> StrategySignal:
+        return _evaluate(candles, current_index, short_period, long_period)
+
+    return evaluate
+
+
+def _evaluate(candles: list, current_index: int, short_period: int, long_period: int) -> StrategySignal:
     if current_index == 0:
         return StrategySignal(direction=DecisionAction.HOLD, score=0.0, reasoning="Not enough data yet")
 
-    short_today = _calculate_sma(candles=candles, current_index=current_index, period=SHORT_PERIOD)
-    long_today = _calculate_sma(candles=candles, current_index=current_index, period=LONG_PERIOD)
-    short_yesterday = _calculate_sma(candles=candles, current_index=current_index - 1, period=SHORT_PERIOD)
-    long_yesterday = _calculate_sma(candles=candles, current_index=current_index - 1, period=LONG_PERIOD)
+    short_today = _calculate_sma(candles=candles, current_index=current_index, period=short_period)
+    long_today = _calculate_sma(candles=candles, current_index=current_index, period=long_period)
+    short_yesterday = _calculate_sma(candles=candles, current_index=current_index - 1, period=short_period)
+    long_yesterday = _calculate_sma(candles=candles, current_index=current_index - 1, period=long_period)
 
     if any(value is None for value in [short_today, long_today, short_yesterday, long_yesterday]):
         return StrategySignal(direction=DecisionAction.HOLD, score=0.0, reasoning="Not enough data yet")
@@ -43,3 +53,6 @@ def evaluate(candles: list, current_index: int) -> StrategySignal:
         position = "Short and long SMA are equal"
 
     return StrategySignal(direction=DecisionAction.HOLD, score=score, reasoning=position)
+
+
+evaluate = build_evaluate()

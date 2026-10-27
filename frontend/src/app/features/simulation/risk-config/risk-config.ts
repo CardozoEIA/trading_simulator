@@ -122,10 +122,4 @@ export class RiskConfig implements OnInit {
       error: (error) => { this.alert.showApiError(error); }
     });
   }
-  async onDashboardClick() {
-    const confirmed = await this.alert.confirmLeaveWizard();
-    if (confirmed) {
-      this.router.navigate(['/dashboard']);
-    }
-  }
 }

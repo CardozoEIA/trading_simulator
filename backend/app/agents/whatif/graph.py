@@ -69,10 +69,14 @@ def build_what_if_graph(llm=None, runner=None, timeout: float = WHAT_IF_TIMEOUT_
             start_date=date.fromisoformat(str(original["start_date"])),
             end_date=date.fromisoformat(str(original["end_date"])),
             initial_capital=original["initial_capital"],
-            strategies=original["strategies"],
+            # custom strategies (US-21) travel as snapshots, not as codes
+            strategies=[s for s in original["strategies"] if not s.startswith("CUSTOM:")],
+            custom_strategy_ids=[c["id"] for c in original.get("custom_strategies") or []],
+            ensemble_threshold=original.get("ensemble_threshold"),
         )
         records = validate_configuration(configuration)
-        saved = save_configuration(configuration, user_id, records)
+        extra = {"custom_snapshots": original["custom_strategies"]} if original.get("custom_strategies") else {}
+        saved = save_configuration(configuration, user_id, records, **extra)
 
         risk_values = {field: float(original["risk"][field]) for field in RISK_FIELDS}
         risk_values[state["proposal"]["parameter"]] = state["proposal"]["suggested"]

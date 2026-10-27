@@ -5,15 +5,24 @@ from app.core.validation import is_valid_uuid
 from app.services.indicators.calculator import IndicatorSnapshot
 
 
-def save_signals(simulation_id: str, snapshots: list[IndicatorSnapshot]) -> None:
+def save_signals(simulation_id: str, snapshots: list[IndicatorSnapshot], regimes: dict | None = None) -> None:
+    """`regimes` (US-23) maps a date to its RegimeLabel. The regime is stored next to the signals as context;
+    days without a label (not enough history before them) keep the columns empty."""
     if not snapshots:
         return
-    rows = [{
-        "simulation_id": simulation_id, "date": s.date.isoformat(), "price": s.price,
-        "sma_short": s.sma_short, "sma_long": s.sma_long, "rsi": s.rsi,
-        "bollinger_mean": s.bollinger_mean, "bollinger_upper": s.bollinger_upper,
-        "bollinger_lower": s.bollinger_lower, "momentum": s.momentum
-    } for s in snapshots]
+    rows = []
+    for s in snapshots:
+        row = {
+            "simulation_id": simulation_id, "date": s.date.isoformat(), "price": s.price,
+            "sma_short": s.sma_short, "sma_long": s.sma_long, "rsi": s.rsi,
+            "bollinger_mean": s.bollinger_mean, "bollinger_upper": s.bollinger_upper,
+            "bollinger_lower": s.bollinger_lower, "momentum": s.momentum
+        }
+        label = (regimes or {}).get(s.date)
+        if label is not None:
+            row["regime"] = label.regime.value
+            row["regime_model_version"] = label.model_version
+        rows.append(row)
     try:
         supabase.table("simulation_signals").insert(rows).execute()
     except Exception:

@@ -7,11 +7,13 @@ graph TD;
 	__start__([<p>__start__</p>]):::first
 	agent(agent)
 	tools(tools)
+	verify(verify)
 	__end__([<p>__end__</p>]):::last
 	__start__ --> agent;
-	agent -.-> __end__;
 	agent -.-> tools;
+	agent -.-> verify;
 	tools --> agent;
+	verify --> __end__;
 	classDef default fill:#f2f0ff,line-height:1.2
 	classDef first fill-opacity:0
 	classDef last fill:#bfb6fc

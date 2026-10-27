@@ -11,3 +11,6 @@ class SupervisorState(MessagesState):
     proposed_change: dict | None
     # Set only for "compare": the other simulation (owned by the same student) to compare with.
     compare_with: str | None
+    # US-31: set only by "explain_agent" for the current turn: the tools it called and what its self-check found.
+    trace: list | None
+    verification: dict | None

@@ -1,0 +1,85 @@
+<div class="custom-container">
+  <header class="custom-header">
+    <a routerLink="/simulation-config" class="back">Configure a simulation</a>
+  </header>
+
+  <span class="section-tag">YOUR STRATEGIES</span>
+  <h1>Custom strategies</h1>
+  <p class="section-intro">
+    Start from one of the four known strategies and change its numbers. Once saved, your strategy shows up in the
+    simulation setup next to the built-in ones, and you can combine it with them.
+  </p>
+
+  <div class="layout">
+    <form [formGroup]="form" (ngSubmit)="save()" class="editor" novalidate>
+      <h2>{{ editingId() ? 'Edit strategy' : 'New strategy' }}</h2>
+
+      <label for="name">Name</label>
+      <input id="name" type="text" formControlName="name" maxlength="40" placeholder="For example: Fast SMA"
+        [class.invalid]="form.controls.name.invalid && form.controls.name.touched">
+      @if (form.controls.name.invalid && form.controls.name.touched) {
+      <p class="error-message">The name needs between 3 and 40 characters</p>
+      }
+
+      <label for="base">Based on</label>
+      <select id="base" formControlName="base" (change)="onBaseChange()">
+        @for (base of bases; track base) {
+        <option [value]="base">{{ baseNames[base] }}</option>
+        }
+      </select>
+
+      <div formGroupName="params" class="params">
+        @for (spec of paramSpecs; track spec.name) {
+        <div class="param">
+          <label [for]="'param-' + spec.name">{{ spec.label }}</label>
+          <p class="field-hint">{{ spec.description }} <span class="range">Allowed: {{ spec.min }} to {{ spec.max }}.
+              Default: {{ spec.default }}.</span></p>
+          <input [id]="'param-' + spec.name" type="number" [formControlName]="spec.name"
+            [step]="spec.kind === 'int' ? 1 : 'any'" [min]="spec.min" [max]="spec.max"
+            (input)="checked.set(false)">
+        </div>
+        }
+      </div>
+
+      @if (problems().length) {
+      <ul class="problems" role="alert">
+        @for (problem of problems(); track problem) {
+        <li>{{ problem }}</li>
+        }
+      </ul>
+      }
+      @if (checked()) {
+      <p class="ok" role="status">Everything is valid. You can save it.</p>
+      }
+
+      <div class="actions">
+        <button type="submit" [disabled]="saving()">{{ editingId() ? 'Save changes' : 'Save strategy' }}</button>
+        <button type="button" class="secondary" (click)="check()">Check</button>
+        <button type="button" class="secondary" (click)="restoreDefaults()">Default values</button>
+        @if (editingId()) {
+        <button type="button" class="secondary" (click)="resetForm()">Cancel</button>
+        }
+      </div>
+    </form>
+
+    <section class="saved" aria-label="Saved strategies">
+      <h2>Saved ({{ strategies().length }})</h2>
+      @if (strategies().length === 0) {
+      <p class="empty">You have no custom strategies yet.</p>
+      }
+      @for (strategy of strategies(); track strategy.id) {
+      <article class="saved-item" [class.editing]="editingId() === strategy.id">
+        <div>
+          <p class="saved-name">{{ strategy.name }}</p>
+          <p class="saved-meta">{{ baseNames[strategy.base_strategy] }}</p>
+          <p class="saved-params">{{ summary(strategy) }}</p>
+        </div>
+        <div class="saved-actions">
+          <button type="button" class="small" (click)="edit(strategy)">Edit</button>
+          <button type="button" class="small danger" (click)="remove(strategy)">Delete</button>
+        </div>
+      </article>
+      }
+    </section>
+  </div>
+</div>

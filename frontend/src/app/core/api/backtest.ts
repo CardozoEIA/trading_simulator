@@ -22,13 +22,21 @@ export class Backtest {
     return this.http.get<Strategy[]>(`${this.baseUrl}/backtest/strategies`)
   }
 
-  public configureBacktest(asset: string, startDate: string, endDate: string, initialCapital: number, strategies: string[]){
+  /**
+   * `strategies` may mix built-in codes (SMA, RSI...) with custom ones (CUSTOM:<id>, US-21);
+   * `ensembleThreshold` (US-24) only matters when two or more strategies are combined.
+   */
+  public configureBacktest(asset: string, startDate: string, endDate: string, initialCapital: number, strategies: string[],
+                           ensembleThreshold: number | null = null){
+    const customPrefix = 'CUSTOM:';
     return this.http.post<BacktestConfigurationResponse>(`${this.baseUrl}/backtest/configuration`, {
       asset: asset,
       start_date: startDate,
       end_date: endDate,
       initial_capital: initialCapital,
-      strategies: strategies
+      strategies: strategies.filter(code => !code.startsWith(customPrefix)),
+      custom_strategy_ids: strategies.filter(code => code.startsWith(customPrefix)).map(code => code.slice(customPrefix.length)),
+      ensemble_threshold: ensembleThreshold
     })
   }
 

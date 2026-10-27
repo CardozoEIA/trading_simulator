@@ -5,7 +5,7 @@ import { Strategy } from '@models/simulation/strategy.model';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FormGroup, FormControl, FormArray, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Alert } from '@shared/ui/alert/alert';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { BacktestConfigurationResponse } from '@models/simulation/backtest-configuration-response.model';
 import { StepIndicator } from '@shared/ui/step-indicator/step-indicator';
 import { HelpHint } from '@shared/ui/help-hint/help-hint';
@@ -30,7 +30,7 @@ function atLeastOneStrategyValidator(control: AbstractControl): ValidationErrors
 
 @Component({
   selector: 'app-simulation-config',
-  imports: [ReactiveFormsModule, StepIndicator, HelpHint, DescribeSetup],
+  imports: [ReactiveFormsModule, RouterLink, StepIndicator, HelpHint, DescribeSetup],
   templateUrl: './simulation-config.html',
   styleUrl: './simulation-config.css',
 })
@@ -50,18 +50,18 @@ export class SimulationConfig implements OnInit {
     startDate: new FormControl('', Validators.required),
     endDate: new FormControl('', Validators.required),
     initialCapital: new FormControl<number | null>(null, [Validators.required, Validators.min(1)]),
-    strategies: new FormArray([] as FormControl[], atLeastOneStrategyValidator)
+    strategies: new FormArray([] as FormControl[], atLeastOneStrategyValidator),
+    // US-24: only used when two or more strategies are combined. Empty = the default (0.1).
+    ensembleThreshold: new FormControl<number | null>(null, [Validators.min(0.01), Validators.max(1)])
   }, { validators: dateRangeValidator });
 
   get strategiesArray(): FormArray {
     return this.simConfigForm.get('strategies') as FormArray;
   }
 
-  async onDashboardClick() {
-    const confirmed = await this.alert.confirmLeaveWizard();
-    if (confirmed) {
-      this.router.navigate(['/dashboard']);
-    }
+  /** How many strategies are ticked right now (decides whether the ensemble threshold applies). */
+  get selectedCount(): number {
+    return this.strategiesArray.controls.filter(c => c.value === true).length;
   }
 
   ngOnInit(): void {
@@ -119,7 +119,8 @@ export class SimulationConfig implements OnInit {
       this.simConfigForm.value.startDate ?? '',
       this.simConfigForm.value.endDate ?? '',
       this.simConfigForm.value.initialCapital ?? 0,
-      selectedStrategies
+      selectedStrategies,
+      this.selectedCount >= 2 ? (this.simConfigForm.value.ensembleThreshold ?? null) : null
     ).subscribe({
       next: (response) => {
         this.savedConfig = response;

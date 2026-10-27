@@ -11,12 +11,6 @@ from app.modules.backtest.service import (
     validate_configuration,
     save_configuration
 )
-from app.modules.backtest.service import (
-    get_available_assets,
-    get_available_strategies,
-    validate_configuration,
-    save_configuration
-)
 
 
 router = APIRouter(
@@ -36,7 +30,7 @@ def get_assets(
 def get_strategies(
     current_user=Depends(get_current_user)
 ):
-    return get_available_strategies()
+    return get_available_strategies(current_user.id)
 
 
 @router.post(
@@ -47,11 +41,5 @@ def configure_backtest(
     configuration: BacktestConfiguration,
     current_user=Depends(get_current_user)
 ):
-    records = validate_configuration(configuration)
+    records = validate_configuration(configuration, current_user.id)
     return save_configuration(configuration, current_user.id, records)
-
-@router.get("/strategies")
-def get_strategies(
-    current_user=Depends(get_current_user)
-):
-    return get_available_strategies()

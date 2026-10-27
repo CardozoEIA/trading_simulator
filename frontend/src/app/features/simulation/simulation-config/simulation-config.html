@@ -56,10 +56,22 @@
         @if (strategiesArray.errors?.['noStrategySelected'] && submitted) {
         <p class="error-message">Select at least one strategy</p>
         }
+        <a routerLink="/custom-strategies" class="custom-link">Create or edit your own strategies</a>
+
+        @if (selectedCount >= 2) {
+        <label for="ensembleThreshold">Combined signal threshold (optional)</label>
+        <p class="field-hint">Strategies are blended with weights that depend on the market regime. The blended
+            signal must pass this value (between 0.01 and 1) to trigger a BUY or SELL. Leave it empty for the default,
+            0.1.</p>
+        <input id="ensembleThreshold" type="number" step="0.01" min="0.01" max="1" placeholder="0.1"
+            formControlName="ensembleThreshold"
+            [class.invalid]="simConfigForm.get('ensembleThreshold')?.invalid && submitted">
+        @if (simConfigForm.get('ensembleThreshold')?.invalid && submitted) {
+        <p class="error-message">Enter a value between 0.01 and 1</p>
+        }
+        }
 
         <button type="submit">Configure simulation</button>
-
-        <button type="button" class="link-style" (click)="onDashboardClick()">Dashboard</button>
     </form>
 
     @if (savedConfig) {
