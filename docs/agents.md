@@ -22,23 +22,43 @@ The diagrams below are drawn by hand from the graphs exported from the code (`do
 Each entry point starts one graph. Some graphs reuse others, and two steps wait for the student before anything runs or is saved.
 
 ```mermaid
-flowchart LR
-    S((Student)) -->|Explain button| EXP[explain]
-    S -->|chat question| CHAT[chat supervisor]
-    S -->|Compare in History| CMP[compare]
-    S -->|Generate report| REP[report]
-    S -->|Describe a simulation| SET[setup]
-    S -->|Knowledge question| KNO[knowledge]
-    FIN([Simulation finished]) --> INS[insights]
+flowchart TB
+    T1(["Explain button"]) --> EXP
+    T2(["Simulation finishes"]) --> INS
+    T3(["Chat question"]) --> SUP
+    T4(["Compare in History"]) --> CMP
+    T5(["Generate report"]) --> REP
+    T6(["Describe a simulation"]) --> SET
+    T7(["Knowledge question"]) --> KNO
 
-    CHAT -->|explain_agent| EXP
-    CHAT -->|compare_agent| CMP
-    CHAT -->|propose_change| H1{{Student presses<br/>Run what-if}}
-    H1 --> WI[what-if]
-    WI -->|compare original vs copy| CMP
+    EXP["<b>explain</b><br/>agent ⇄ tools → verify<br/>(ReAct + self-check)"]
+    INS["<b>insights</b><br/>gather_facts → explain → verify"]
+    SUP{"<b>chat supervisor</b><br/>router → JSON route"}
+    CMP["<b>compare</b><br/>fetch_a ∥ fetch_b → diff<br/>→ explain → verify"]
+    REP["<b>report</b><br/>gather_facts → write → verify"]
+    SET["<b>setup</b><br/>extract → validate<br/>→ ask_missing | propose"]
+    KNO["<b>knowledge (RAG)</b><br/>validate_intent → retrieve → grade<br/>→ generate | refuse → save_history"]
 
-    SET -->|proposal| H2{{Student presses<br/>Use these values}}
-    H2 --> FORM[Normal setup steps<br/>config → risk → confirm]
+    SUP -->|a specific day| EXP
+    SUP -->|overview| SUM["insights_agent<br/>highlights summary"]
+    SUP -->|vs buy &amp; hold| ANS["answer"]
+    SUP -->|what is X?| CON["conceptual_agent<br/>glossary + memory"]
+    SUP -->|compare runs| CMP
+    SUP -->|try another risk limit| PROP["propose_change<br/>proposal + plan"]
+    SUP -->|"off-topic · unclear"| FIX["off_topic · clarify<br/>fixed reply"]
+
+    PROP --> H1{{"Student presses<br/>Run what-if"}}
+    H1 --> WI["<b>what-if</b><br/>load → copy → run<br/>→ compare | fallback"]
+    WI -->|original vs copy| CMP
+    SET --> H2{{"Student presses<br/>Use these values"}}
+    H2 --> FORM["Normal setup steps<br/>config → risk → confirm"]
+
+    classDef trigger fill:#13233a,stroke:#13233a,color:#ffffff
+    classDef subflow fill:#e4ecf8,stroke:#2f63ad,stroke-width:2px,color:#13233a
+    classDef human fill:#fbf6ec,stroke:#c9a15c,color:#13233a
+    class T1,T2,T3,T4,T5,T6,T7 trigger
+    class EXP,INS,CMP,REP,SET,KNO,WI subflow
+    class H1,H2 human
 ```
 
 ---
@@ -47,7 +67,17 @@ flowchart LR
 
 Solid arrows are the graph edges; dashed lines connect a node to the tools and data it uses. Conditional edges carry their condition as the label.
 
+| Shape | Meaning |
+|---|---|
+| Dark pill | `START` / `END` |
+| Blue box | Graph node |
+| Dashed gold box | Tool or helper the node calls |
+| Cream cylinder | Data read or written |
+| Double-border box | Another agent graph run inside the node |
+
 ### explain (US-20, US-31)
+
+Image: [`agents/graphs/explain.png`](agents/graphs/explain.png)
 
 ReAct loop: the model decides which tools to call, LangGraph runs them and gives the results back, until the model answers without tool calls. That draft then goes through a **verify** node (US-31): every sentence is checked and the ones with a date or number that no tool returned (or that promise future results) are removed, with a note for the student. The check is code, not the model grading itself. Builder: `build_agent_graph(simulation_id, user_id)`; the tools are bound to that simulation.
 
@@ -64,9 +94,19 @@ flowchart LR
     T -.- t1[get_price] & t3[get_indicators] & t5[get_market_regime] -.- d1[(simulation_signals)]
     T -.- t2[get_decision] & t6[get_ensemble_breakdown] -.- d2[(simulation_decisions)]
     T -.- t4[get_risk_config] -.- d3[(simulations +<br/>risk_configurations)]
+
+    classDef io fill:#13233a,stroke:#13233a,color:#ffffff
+    classDef tool fill:#ffffff,stroke:#c9a15c,stroke-dasharray:4 3,color:#13233a
+    classDef data fill:#fbf6ec,stroke:#c9a15c,color:#13233a
+    classDef subflow fill:#e4ecf8,stroke:#2f63ad,stroke-width:2px,color:#13233a
+    class S,E io
+    class t1,t2,t3,t4,t5,t6 tool
+    class d1,d2,d3 data
 ```
 
 ### chat (US-22/25)
+
+Image: [`agents/graphs/chat.png`](agents/graphs/chat.png)
 
 The `supervisor` asks the router model for a route as JSON (`routing/router.py`); Python validates it and resolves dates, risk proposals and the simulation to compare with. `propose_change`, `off_topic` and `clarify` answer directly from the supervisor and end the turn; `off_topic` and `clarify` always use fixed text, never the router's own wording.
 
@@ -79,19 +119,33 @@ flowchart TB
     SUP -->|answer| AN[answer]
     SUP -->|conceptual| CA[conceptual_agent]
     SUP -->|compare| CO[compare_agent]
-    SUP -->|propose_change / off_topic / clarify| E([END])
-    EA & IA & AN & CA & CO --> E
+    SUP -->|"propose_change · off_topic · clarify<br/>reply from the supervisor"| E([END])
 
     EA -.- g1[[explain graph]]
     IA -.- t1[summarize_simulation]
     AN -.- t2[buy_and_hold_comparison]
     CA -.- t3[glossary topics only<br/>+ relevant earlier turns]
     CO -.- g2[[compare graph<br/>compare_simulations_text]]
+    g1 ~~~ E
+    t1 ~~~ E
+    t2 ~~~ E
+    t3 ~~~ E
+    g2 ~~~ E
+    EA & IA & AN & CA & CO --> E
+
+    classDef io fill:#13233a,stroke:#13233a,color:#ffffff
+    classDef tool fill:#ffffff,stroke:#c9a15c,stroke-dasharray:4 3,color:#13233a
+    classDef subflow fill:#e4ecf8,stroke:#2f63ad,stroke-width:2px,color:#13233a
+    class S,E io
+    class h,t1,t2,t3 tool
+    class g1,g2 subflow
 ```
 
 The conversation is stored by a Postgres checkpointer (`modules/chat/checkpointer.py`, in-memory if `SUPABASE_DB_URL` is not set) and in `chat_messages`; `conceptual_agent` only sees the earlier turns relevant to the new question (`modules/chat/memory.py`). `propose_change` returns the proposal and its plan; it never changes anything (see what-if).
 
 ### insights (US-26)
+
+Image: [`agents/graphs/insights.png`](agents/graphs/insights.png)
 
 Started by the backend, not by a question, when a simulation reaches `FINISHED` or `STOPPED_BY_RISK`. The highlights are computed by code; the model only explains each one.
 
@@ -106,11 +160,21 @@ flowchart LR
 
     G -.- t1[get_run_overview] & t2[find_highlights] -.- d[(simulation, trades,<br/>equity curve, signals)]
     V -.- u[unverified_values]
+
+    classDef io fill:#13233a,stroke:#13233a,color:#ffffff
+    classDef tool fill:#ffffff,stroke:#c9a15c,stroke-dasharray:4 3,color:#13233a
+    classDef data fill:#fbf6ec,stroke:#c9a15c,color:#13233a
+    classDef subflow fill:#e4ecf8,stroke:#2f63ad,stroke-width:2px,color:#13233a
+    class S,E io
+    class t1,t2,u tool
+    class d data
 ```
 
 `modules/insights/service.py` stores the verified texts in `simulation_insights`.
 
 ### compare (US-27)
+
+Image: [`agents/graphs/compare.png`](agents/graphs/compare.png)
 
 Both simulations are fetched in parallel through tools bound to the student. Only a slice of each run is read, never its daily data.
 
@@ -125,11 +189,21 @@ flowchart LR
 
     A & B -.- t[simulation_slice<br/>ownership check] -.- d[("configuration, metrics,<br/>buy &amp; hold, highlights")]
     V -.- u[unverified_values · wrong_directions<br/>makes_promises]
+
+    classDef io fill:#13233a,stroke:#13233a,color:#ffffff
+    classDef tool fill:#ffffff,stroke:#c9a15c,stroke-dasharray:4 3,color:#13233a
+    classDef data fill:#fbf6ec,stroke:#c9a15c,color:#13233a
+    classDef subflow fill:#e4ecf8,stroke:#2f63ad,stroke-width:2px,color:#13233a
+    class S,E io
+    class t,u tool
+    class d data
 ```
 
 `diff` computes the configuration differences, the metric deltas, which run is better in each metric and the winner by total return. `verify` also rejects text that names the wrong run as the larger or smaller one. The `list_simulations` tool is used by the chat supervisor to resolve "my previous one".
 
 ### report (US-32)
+
+Image: [`agents/graphs/report.png`](agents/graphs/report.png)
 
 ```mermaid
 flowchart LR
@@ -141,11 +215,21 @@ flowchart LR
 
     G -.- t[load_report_data] -.- d[(configuration, results,<br/>metrics, trades, highlights)]
     V -.- u[unverified_values · makes_promises]
+
+    classDef io fill:#13233a,stroke:#13233a,color:#ffffff
+    classDef tool fill:#ffffff,stroke:#c9a15c,stroke-dasharray:4 3,color:#13233a
+    classDef data fill:#fbf6ec,stroke:#c9a15c,color:#13233a
+    classDef subflow fill:#e4ecf8,stroke:#2f63ad,stroke-width:2px,color:#13233a
+    class S,E io
+    class t,u tool
+    class d data
 ```
 
 The tables, figures and the disclaimer are written by code (`agents/report/facts.py`, `render.py`); a narrative that fails twice is dropped and the section keeps only its figures.
 
 ### setup (US-29)
+
+Image: [`agents/graphs/setup.png`](agents/graphs/setup.png)
 
 ```mermaid
 flowchart LR
@@ -157,11 +241,20 @@ flowchart LR
 
     V -.- c[coerce<br/>drop values not in the text]
     V -.- r[validate_configuration<br/>+ risk rules, read only]
+
+    classDef io fill:#13233a,stroke:#13233a,color:#ffffff
+    classDef tool fill:#ffffff,stroke:#c9a15c,stroke-dasharray:4 3,color:#13233a
+    classDef data fill:#fbf6ec,stroke:#c9a15c,color:#13233a
+    classDef subflow fill:#e4ecf8,stroke:#2f63ad,stroke-width:2px,color:#13233a
+    class S,E io
+    class c,r tool
 ```
 
 `ask_missing` and `propose` are written by code. Nothing is saved: the proposal only pre-fills the normal setup form.
 
 ### what-if (US-28)
+
+Image: [`agents/graphs/whatif.png`](agents/graphs/whatif.png)
 
 Runs only through `POST /simulations/{id}/what-if`, i.e. after the student pressed **Run what-if** on the chat proposal.
 
@@ -179,11 +272,22 @@ flowchart LR
     R -.- r[start_simulation<br/>90 s timeout]
     CM -.- g[[compare graph]]
     F -.- f[expected effect in words<br/>no numbers]
+
+    classDef io fill:#13233a,stroke:#13233a,color:#ffffff
+    classDef tool fill:#ffffff,stroke:#c9a15c,stroke-dasharray:4 3,color:#13233a
+    classDef data fill:#fbf6ec,stroke:#c9a15c,color:#13233a
+    classDef subflow fill:#e4ecf8,stroke:#2f63ad,stroke-width:2px,color:#13233a
+    class S,E io
+    class l,r,f tool
+    class c data
+    class g subflow
 ```
 
 The original configuration, risk configuration and simulation are never updated. If the compare agent is unavailable, the computed comparison is returned without its explanation.
 
 ### knowledge (US-30)
+
+Image: [`agents/graphs/knowledge.png`](agents/graphs/knowledge.png)
 
 ```mermaid
 flowchart LR
@@ -199,6 +303,14 @@ flowchart LR
     RE -.- r[rewrite query · nomic-embed-text<br/>pgvector search] -.- d[(document_chunks)]
     GR -.- g[similarity floor + grader model]
     SH -.- h[(knowledge history)]
+
+    classDef io fill:#13233a,stroke:#13233a,color:#ffffff
+    classDef tool fill:#ffffff,stroke:#c9a15c,stroke-dasharray:4 3,color:#13233a
+    classDef data fill:#fbf6ec,stroke:#c9a15c,color:#13233a
+    classDef subflow fill:#e4ecf8,stroke:#2f63ad,stroke-width:2px,color:#13233a
+    class S,E io
+    class r,g tool
+    class d,h data
 ```
 
 `generate` answers only from the retrieved passages and cites them; `refuse` returns a fixed text.
@@ -229,10 +341,9 @@ It builds every graph with a fake model and dummy settings (no Ollama, no Supaba
 
 ### PNGs for the presentation
 
-- Paste a diagram into <https://mermaid.live> and use **Export → PNG**, or
-- `npx @mermaid-js/mermaid-cli -i docs/agents/graphs/<name>.mmd -o docs/agents/graphs/<name>.png`
+Every diagram on this page, with its tools, is exported to `docs/agents/graphs/<name>.png`: `overview`, `explain`, `chat`, `insights`, `compare`, `report`, `setup`, `whatif` and `knowledge`. (The `.mmd` files next to them are the raw graphs exported from the code, without tools.)
 
-The hand-drawn diagrams on this page (with tools) can be exported the same way by saving the block to a `.mmd` file first. The overview and the chat diagram are already exported for the slides:
+After changing a diagram, export it again: paste the block into <https://mermaid.live> and use **Export → PNG**, or save it to a `.mmd` file and run `npx @mermaid-js/mermaid-cli -i <name>.mmd -o docs/agents/graphs/<name>.png`.
 
 | Overview | Chat |
 |---|---|
