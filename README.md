@@ -39,6 +39,10 @@ Plataforma educativa de apoyo a la decisión en trading. Los estudiantes simulan
 
 ## Arquitectura
 
+![Arquitectura del sistema Market Navigator AI](docs/architecture.png)
+
+Resumen:
+
 ```mermaid
 flowchart LR
     U[Estudiante / navegador] -->|HTTPS| FE[Angular 20<br/>Vercel]

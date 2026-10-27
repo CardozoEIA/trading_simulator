@@ -2,6 +2,10 @@
 
 ## 1. System overview
 
+![Market Navigator AI system architecture](architecture.png)
+
+The same, in short:
+
 ```mermaid
 flowchart LR
     U[Student / browser] -->|HTTPS| FE[Angular 20 SPA<br/>Vercel]
