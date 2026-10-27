@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { DashboardLink } from '@shared/ui/dashboard-link/dashboard-link';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, DashboardLink],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

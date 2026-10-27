@@ -64,13 +64,6 @@ export class SimulationConfig implements OnInit {
     return this.strategiesArray.controls.filter(c => c.value === true).length;
   }
 
-  async onDashboardClick() {
-    const confirmed = await this.alert.confirmLeaveWizard();
-    if (confirmed) {
-      this.router.navigate(['/dashboard']);
-    }
-  }
-
   ngOnInit(): void {
     this.backtest.getAssets().subscribe({
       next: (response) => { this.assets = response },
