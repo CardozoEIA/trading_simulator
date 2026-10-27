@@ -3,6 +3,8 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
+import { Alert } from '@shared/ui/alert/alert';
+
 import { CustomStrategies } from './custom-strategies';
 
 const CATALOG = {
@@ -23,6 +25,7 @@ describe('CustomStrategies (US-21)', () => {
   let fixture: ComponentFixture<CustomStrategies>;
   let component: CustomStrategies;
   let http: HttpTestingController;
+  let showSuccess: jasmine.Spy;
   const html = () => fixture.nativeElement as HTMLElement;
 
   beforeEach(async () => {
@@ -32,6 +35,7 @@ describe('CustomStrategies (US-21)', () => {
     }).compileComponents();
 
     http = TestBed.inject(HttpTestingController);
+    showSuccess = spyOn(TestBed.inject(Alert), 'showSuccess');
     fixture = TestBed.createComponent(CustomStrategies);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -87,6 +91,24 @@ describe('CustomStrategies (US-21)', () => {
 
     expect(component.form.controls.name.value).toBe('');
     expect(component.editingId()).toBeNull();
+    expect(showSuccess).toHaveBeenCalledOnceWith(jasmine.stringContaining('"Fast SMA" was created'));
+  });
+
+  it('tells the student nothing was saved when the server rejects the strategy', () => {
+    component.form.controls.name.setValue('Broken');
+    component.save();
+    http.expectOne((r) => r.method === 'POST').flush(
+      { detail: ['The short average must be shorter than the long average'] },
+      { status: 422, statusText: 'Unprocessable Entity' },
+    );
+    expect(showSuccess).not.toHaveBeenCalled();
+  });
+
+  it('names the base strategy with its code first', () => {
+    const options = Array.from(html().querySelectorAll('#base option')).map((o) => o.textContent?.trim());
+    expect(options).toEqual([
+      'SMA · Moving Average Crossover', 'RSI · Relative Strength Index', 'BOLLINGER · Bollinger Bands', 'MOMENTUM · Momentum',
+    ]);
   });
 
   it('does not call the server with an invalid name', () => {
@@ -108,5 +130,6 @@ describe('CustomStrategies (US-21)', () => {
     expect(update.request.body.params.period).toBe(9);
     update.flush({});
     http.expectOne((r) => r.url.endsWith('/custom-strategies') && r.method === 'GET').flush([]);
+    expect(showSuccess).toHaveBeenCalledOnceWith('"Patient RSI" was updated.');
   });
 });

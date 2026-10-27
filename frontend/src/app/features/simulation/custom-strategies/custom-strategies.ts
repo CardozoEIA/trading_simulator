@@ -12,11 +12,12 @@ import {
 } from '@models/simulation/custom-strategy.model';
 import { Alert } from '@shared/ui/alert/alert';
 
+// Code first, as everywhere else in the app (SMA, RSI...), then the full name.
 const BASE_NAMES: Record<BaseStrategy, string> = {
-  SMA: 'Moving Average Crossover',
-  RSI: 'Relative Strength Index',
-  BOLLINGER: 'Bollinger Bands',
-  MOMENTUM: 'Momentum',
+  SMA: 'SMA · Moving Average Crossover',
+  RSI: 'RSI · Relative Strength Index',
+  BOLLINGER: 'BOLLINGER · Bollinger Bands',
+  MOMENTUM: 'MOMENTUM · Momentum',
 };
 
 /** US-21: create, modify, save and delete custom strategies (a base strategy with your own parameters). */
@@ -148,12 +149,16 @@ export class CustomStrategies implements OnInit {
     }
     this.saving.set(true);
     const id = this.editingId();
-    const request = id ? this.api.update(id, this.payload()) : this.api.create(this.payload());
+    const strategy = this.payload();
+    const request = id ? this.api.update(id, strategy) : this.api.create(strategy);
     request.subscribe({
       next: () => {
         this.saving.set(false);
         this.resetForm();
         this.reload();
+        this.alert.showSuccess(
+          id ? `"${strategy.name}" was updated.` : `"${strategy.name}" was created. You can now pick it when you configure a simulation.`,
+        );
       },
       error: (error) => {
         this.saving.set(false);
